@@ -1,0 +1,1 @@
+export type PriceResult = { price: number; discountPercentage: number; finalPrice: number; rule: string };
