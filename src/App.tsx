@@ -15,6 +15,7 @@ import { useAuthStore } from './store/authStore';
 
 const App: React.FC = () => {
   const token = useAuthStore(s => s.token);
+
   if (!token) {
     return (
       <Routes>
@@ -25,11 +26,11 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex">
+      <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 min-h-0 overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />

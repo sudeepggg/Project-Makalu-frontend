@@ -1,1 +1,4 @@
-export type PriceResult = { price: number; discountPercentage: number; finalPrice: number; rule: string };
+export type Pricing = {
+  id: string;
+  price: number;
+};
