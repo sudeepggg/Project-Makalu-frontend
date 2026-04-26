@@ -1,4 +1,4 @@
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 import api from '../api/client';
 import { endpoints } from '../api/endpoints';
 
@@ -14,7 +14,7 @@ export function useAuth() {
   const logout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    setAuth(null, null);
+    setAuth(null as any, null as any);
   };
   return { login, logout };
 }

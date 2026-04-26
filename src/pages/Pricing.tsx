@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 
 const Pricing: React.FC = () => {
-  const { data } = useQuery(['pricelists'], async () => (await api.get('/pricing/price-lists')).data.data);
+  const { data } = useQuery({ queryKey: ['pricelists'], queryFn: async () => (await api.get('/pricing/price-lists')).data.data });
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Pricing</h1>

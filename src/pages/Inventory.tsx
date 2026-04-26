@@ -6,10 +6,13 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 
 const Inventory: React.FC = () => {
-  const { data } = useQuery(['inventoryPageData'], async () => {
-    const inv = (await api.get('/inventory')).data.data;
-    const low = (await api.get('/inventory/alerts/low-stock')).data.data;
-    return { inv, low };
+  const { data } = useQuery({
+    queryKey: ['inventoryPageData'],
+    queryFn: async () => {
+      const inv = (await api.get('/inventory')).data.data;
+      const low = (await api.get('/inventory/alerts/low-stock')).data.data;
+      return { inv, low };
+    }
   });
 
   return (

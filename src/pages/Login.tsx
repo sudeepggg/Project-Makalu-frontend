@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { endpoints } from '../api/endpoints';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 const Login: React.FC = () => {
   const [email,setEmail]=useState('admin@doms.local'); const [password,setPassword]=useState('admin@123');

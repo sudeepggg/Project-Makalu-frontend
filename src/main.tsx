@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 // @ts-ignore: CSS module import declaration is handled by the bundler
-import './styles/globals.css';
+import '../styles/globals.css';
 
 const queryClient = new QueryClient();
 

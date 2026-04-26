@@ -11,7 +11,7 @@ import Inventory from './pages/Inventory';
 import Pricing from './pages/Pricing';
 import Reports from './pages/Reports';
 import NotFound from './pages/NotFound';
-import { useAuthStore } from './store/authStore';
+import { useAuthStore } from '../store/authStore';
 
 const App: React.FC = () => {
   const token = useAuthStore(s => s.token);
