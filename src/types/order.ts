@@ -1,2 +1,7 @@
-export type OrderItem = { productId: string; quantity: number; unitPrice: number; lineTotal: number };
-export type Order = { id: string; orderNumber: string; customerId: string; items: OrderItem[]; total: number; status: string; orderDate: string };
+export type Order = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  total: number;
+  orderDate: string;
+};

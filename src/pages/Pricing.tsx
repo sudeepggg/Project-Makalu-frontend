@@ -1,17 +1,18 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import api from '../api/client';
+import PricingList from '../components/pricing/PricingList';
+import PricingHistory from '../components/pricing/PricingHistory';
+import PricingForm from '../components/pricing/PricingForm';
 
-const Pricing: React.FC = () => {
-  const { data } = useQuery({ queryKey: ['pricelists'], queryFn: async () => (await api.get('/pricing/price-lists')).data.data });
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Pricing</h1>
-      <div className="bg-white p-4 rounded shadow">
-        <pre className="text-sm">{JSON.stringify(data, null, 2)}</pre>
+const Pricing: React.FC = () => (
+  <div className="space-y-6 fade-in">
+    <div className="page-header"><h1 className="page-title">Pricing</h1></div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <PricingList />
+        <PricingHistory />
       </div>
+      <PricingForm />
     </div>
-  );
-};
-
+  </div>
+);
 export default Pricing;

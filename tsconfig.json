@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "strict": true,
     "resolveJsonModule": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["react", "react-dom"]
   },
   "include": ["src"]
 }

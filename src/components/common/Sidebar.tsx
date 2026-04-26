@@ -1,20 +1,37 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard, Users, Package, ShoppingCart,
+  Warehouse, Tag, BarChart3,
+} from 'lucide-react';
 
-const Sidebar: React.FC = () => {
-  const linkClass = ({isActive}:{isActive:boolean}) => isActive ? 'block px-4 py-2 bg-primary text-white rounded' : 'block px-4 py-2 hover:bg-gray-100 rounded';
-  return (
-    <aside className="w-64 bg-white border-r h-screen p-4 hidden md:block">
-      <nav className="space-y-2 text-sm">
-        <NavLink to="/dashboard" className={linkClass}>Dashboard</NavLink>
-        <NavLink to="/customers" className={linkClass}>Customers</NavLink>
-        <NavLink to="/products" className={linkClass}>Products</NavLink>
-        <NavLink to="/orders" className={linkClass}>Orders</NavLink>
-        <NavLink to="/inventory" className={linkClass}>Inventory</NavLink>
-        <NavLink to="/pricing" className={linkClass}>Pricing</NavLink>
-        <NavLink to="/reports" className={linkClass}>Reports</NavLink>
-      </nav>
-    </aside>
-  );
-};
+const nav = [
+  { to: '/dashboard', label: 'Dashboard',  Icon: LayoutDashboard },
+  { to: '/customers', label: 'Customers',  Icon: Users },
+  { to: '/products',  label: 'Products',   Icon: Package },
+  { to: '/orders',    label: 'Orders',     Icon: ShoppingCart },
+  { to: '/inventory', label: 'Inventory',  Icon: Warehouse },
+  { to: '/pricing',   label: 'Pricing',    Icon: Tag },
+  { to: '/reports',   label: 'Reports',    Icon: BarChart3 },
+];
+
+const Sidebar: React.FC = () => (
+  <aside className="w-56 bg-white border-r border-surface-200 min-h-[calc(100vh-56px)] flex flex-col py-4 px-3 hidden md:flex shrink-0">
+    <nav className="space-y-0.5">
+      {nav.map(({ to, label, Icon }) => (
+        <NavLink
+          key={to}
+          to={to}
+          className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+        >
+          <Icon size={17} />
+          {label}
+        </NavLink>
+      ))}
+    </nav>
+    <div className="mt-auto pt-4 border-t border-surface-200">
+      <div className="px-3 py-2 text-xs text-ink-faint font-mono">DOMS v1.0</div>
+    </div>
+  </aside>
+);
 export default Sidebar;

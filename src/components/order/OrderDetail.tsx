@@ -1,173 +1,125 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/client';
 import { endpoints } from '../../api/endpoints';
-import { currency, dateShort } from '../../utils/formatters';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { ArrowLeft } from 'lucide-react';
 
-const fetchOrder = async (id: string) => {
-  const res = await api.get(`${endpoints.orders}/${id}`);
-  // backend wraps data in data => data, adapt if your API differs
-  return res.data.data || res.data;
+const fmt = (v: number) => `NPR ${v?.toLocaleString() ?? 0}`;
+const dt = (v?: string) => v ? new Date(v).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+
+const statusColors: Record<string, string> = {
+  DRAFT: 'badge-draft', CONFIRMED: 'badge-confirmed',
+  DISPATCHED: 'badge-dispatched', DELIVERED: 'badge-delivered',
 };
 
-const postAction = async (id: string, action: 'confirm' | 'dispatch' | 'deliver') => {
-  const res = await api.post(`${endpoints.orders}/${id}/${action}`);
-  return res.data.data || res.data;
-};
-
-const OrderDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({ id, onBack }) => {
   const qc = useQueryClient();
-
-  const { data: order, isLoading, isError, refetch } = useQuery(['order', id], () => fetchOrder(id!), {
-    enabled: !!id,
+  const { data: order, isLoading } = useQuery({
+    queryKey: ['order', id],
+    queryFn: async () => (await api.get(`${endpoints.orders}/${id}`)).data.data,
   });
 
-  const mutation = useMutation((action: 'confirm' | 'dispatch' | 'deliver') => postAction(id!, action), {
+  const mutation = useMutation({
+    mutationFn: async (action: string) => (await api.post(`${endpoints.orders}/${id}/${action}`)).data.data,
     onSuccess: () => {
-      qc.invalidateQueries(['order', id]);
-      qc.invalidateQueries(['orders']);
+      qc.invalidateQueries({ queryKey: ['order', id] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (err: any) => alert(err?.response?.data?.message ?? 'Action failed'),
   });
 
-  if (!id) return <div className="p-4">No order id provided</div>;
   if (isLoading) return <LoadingSpinner />;
-  if (isError) return <div className="p-4 text-red-600">Failed to load order</div>;
+  if (!order) return null;
 
-  const handleAction = async (action: 'confirm' | 'dispatch' | 'deliver') => {
-    try {
-      await mutation.mutateAsync(action);
-      refetch();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Action failed');
-    }
-  };
+  const actions: { status: string; action: string; label: string; cls: string }[] = [
+    { status: 'DRAFT', action: 'confirm', label: 'Confirm', cls: 'btn-primary' },
+    { status: 'CONFIRMED', action: 'dispatch', label: 'Dispatch', cls: 'inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-all disabled:opacity-50' },
+    { status: 'DISPATCHED', action: 'deliver', label: 'Mark Delivered', cls: 'inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all disabled:opacity-50' },
+  ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Order {order.orderNumber}</h2>
-          <div className="text-sm text-gray-600">
-            Status: <span className="font-medium">{order.status}</span> • Ordered: {dateShort(order.orderDate)}
+        <div className="flex items-center gap-3">
+          {onBack && <button onClick={onBack} className="btn-secondary py-1.5 px-2"><ArrowLeft size={16} /></button>}
+          <div>
+            <h2 className="font-display text-2xl text-primary">{order.orderNumber}</h2>
+            <p className="text-sm text-ink-faint">Placed {dt(order.orderDate)}</p>
           </div>
+          <span className={statusColors[order.status] || 'badge-draft'}>{order.status}</span>
         </div>
-
-        <div className="space-x-2">
-          {order.status === 'DRAFT' && (
-            <button
-              onClick={() => handleAction('confirm')}
-              disabled={mutation.isLoading}
-              className="px-3 py-1 bg-primary text-white rounded"
-            >
-              {mutation.isLoading ? 'Processing...' : 'Confirm'}
+        <div className="flex gap-2">
+          {actions.filter(a => a.status === order.status).map(a => (
+            <button key={a.action} onClick={() => mutation.mutate(a.action)} disabled={mutation.isPending} className={a.cls}>
+              {mutation.isPending ? 'Processing…' : a.label}
             </button>
-          )}
-
-          {order.status === 'CONFIRMED' && (
-            <button
-              onClick={() => handleAction('dispatch')}
-              disabled={mutation.isLoading}
-              className="px-3 py-1 bg-yellow-600 text-white rounded"
-            >
-              {mutation.isLoading ? 'Processing...' : 'Dispatch'}
-            </button>
-          )}
-
-          {order.status === 'DISPATCHED' && (
-            <button
-              onClick={() => handleAction('deliver')}
-              disabled={mutation.isLoading}
-              className="px-3 py-1 bg-green-600 text-white rounded"
-            >
-              {mutation.isLoading ? 'Processing...' : 'Deliver'}
-            </button>
-          )}
-
-          <button onClick={() => navigate('/orders')} className="px-3 py-1 border rounded">
-            Back to orders
-          </button>
+          ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-white p-4 rounded shadow">
-          <h3 className="font-semibold mb-2">Items</h3>
-          <table className="min-w-full text-sm">
-            <thead className="text-left text-gray-600">
-              <tr>
-                <th className="py-2">SKU</th>
-                <th>Name</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th>Discount %</th>
-                <th>Line Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items.map((it: any) => (
-                <tr key={it.id} className="border-t">
-                  <td className="py-2">{it.product?.sku}</td>
-                  <td>{it.product?.name}</td>
-                  <td>{it.quantity}</td>
-                  <td>{currency(it.unitPrice)}</td>
-                  <td>{it.discountPercentage ?? 0}%</td>
-                  <td>{currency(it.lineTotal)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="mt-4 flex justify-end">
-            <div className="bg-gray-50 p-3 rounded">
-              <div className="text-sm text-gray-600">Subtotal</div>
-              <div className="text-xl font-semibold">{currency(order.subtotal)}</div>
-              <div className="text-sm text-gray-600">Total</div>
-              <div className="text-2xl font-bold">{currency(order.total)}</div>
+        <div className="lg:col-span-2 card">
+          <div className="p-4 border-b border-surface-200">
+            <h3 className="font-semibold text-ink">Order Items</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="table-base">
+              <thead><tr><th>SKU</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>Line Total</th></tr></thead>
+              <tbody>
+                {order.items?.map((it: any) => (
+                  <tr key={it.id}>
+                    <td className="font-mono text-xs text-ink-muted">{it.product?.sku}</td>
+                    <td className="font-medium">{it.product?.name}</td>
+                    <td>{it.quantity}</td>
+                    <td className="font-mono">{fmt(it.unitPrice)}</td>
+                    <td>{it.discountPercentage ?? 0}%</td>
+                    <td className="font-mono font-semibold">{fmt(it.lineTotal)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="p-4 flex justify-end border-t border-surface-200">
+            <div className="text-right space-y-1">
+              <div className="text-sm text-ink-muted">Subtotal: <span className="font-mono">{fmt(order.subtotal)}</span></div>
+              <div className="text-lg font-semibold text-primary">Total: <span className="font-mono">{fmt(order.total)}</span></div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded shadow space-y-4">
-          <div>
-            <h4 className="font-semibold">Customer</h4>
-            <div className="text-sm">{order.customer?.name}</div>
-            <div className="text-sm text-gray-600">{order.customer?.email}</div>
-            <div className="text-sm text-gray-600">{order.customer?.phone}</div>
+        <div className="space-y-4">
+          <div className="card p-4 space-y-3">
+            <h4 className="font-semibold text-ink">Customer</h4>
+            <div className="text-sm space-y-1">
+              <p className="font-medium">{order.customer?.name}</p>
+              <p className="text-ink-muted">{order.customer?.email || '—'}</p>
+              <p className="text-ink-muted">{order.customer?.phone || '—'}</p>
+            </div>
           </div>
-
-          <div>
-            <h4 className="font-semibold">Payments</h4>
-            {order.payments?.length ? (
-              <ul className="space-y-2">
-                {order.payments.map((p: any) => (
-                  <li key={p.id} className="text-sm border rounded p-2">
-                    <div>Amount: {currency(p.amount)}</div>
-                    <div className="text-gray-600">Method: {p.paymentMethod}</div>
-                    <div className="text-gray-600">Date: {dateShort(p.paymentDate)}</div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-sm text-gray-600">No payments found</div>
-            )}
+          <div className="card p-4 space-y-2">
+            <h4 className="font-semibold text-ink">Timeline</h4>
+            <div className="text-sm space-y-1">
+              <p><span className="text-ink-faint">Placed:</span> {dt(order.orderDate)}</p>
+              {order.confirmedDate && <p><span className="text-ink-faint">Confirmed:</span> {dt(order.confirmedDate)}</p>}
+              {order.dispatchedDate && <p><span className="text-ink-faint">Dispatched:</span> {dt(order.dispatchedDate)}</p>}
+              {order.deliveredDate && <p><span className="text-ink-faint">Delivered:</span> {dt(order.deliveredDate)}</p>}
+            </div>
           </div>
-
-          <div>
-            <h4 className="font-semibold">Meta</h4>
-            <div className="text-sm text-gray-600">Order Number: {order.orderNumber}</div>
-            <div className="text-sm text-gray-600">Placed: {dateShort(order.orderDate)}</div>
-            {order.confirmedDate && <div className="text-sm text-gray-600">Confirmed: {dateShort(order.confirmedDate)}</div>}
-            {order.dispatchedDate && <div className="text-sm text-gray-600">Dispatched: {dateShort(order.dispatchedDate)}</div>}
-            {order.deliveredDate && <div className="text-sm text-gray-600">Delivered: {dateShort(order.deliveredDate)}</div>}
-          </div>
+          {order.payments?.length > 0 && (
+            <div className="card p-4 space-y-2">
+              <h4 className="font-semibold text-ink">Payments</h4>
+              {order.payments.map((p: any) => (
+                <div key={p.id} className="text-sm border border-surface-200 rounded-lg p-3">
+                  <p className="font-mono font-semibold">{fmt(p.amount)}</p>
+                  <p className="text-ink-muted">{p.paymentMethod} · {dt(p.paymentDate)}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
 export default OrderDetail;
