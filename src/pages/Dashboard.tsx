@@ -51,8 +51,5 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-<<<<<<< HEAD
 
-=======
->>>>>>> 4b01169e818ab1cdd4d0ad30141d4301933004b5
 export default Dashboard;
