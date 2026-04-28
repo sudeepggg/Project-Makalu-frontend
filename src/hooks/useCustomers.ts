@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import api from '../api/client';
-import { endpoints } from '../api/endpoints';
+import { useQuery } from "@tanstack/react-query";
+import api from "../api/client";
+import { endpoints } from "../api/endpoints";
 
 export function useCustomers(params?: Record<string, any>) {
   return useQuery({

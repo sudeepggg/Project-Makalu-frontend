@@ -1,20 +1,20 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Header from './components/common/Header';
-import Sidebar from './components/common/Sidebar';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import Products from './pages/Products';
-import Orders from './pages/Orders';
-import Inventory from './pages/Inventory';
-import Pricing from './pages/Pricing';
-import Reports from './pages/Reports';
-import NotFound from './pages/NotFound';
-import { useAuthStore } from './store/authStore';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Header from "./components/common/Header";
+import Sidebar from "./components/common/Sidebar";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Customers from "./pages/Customers";
+import Products from "./pages/Products";
+import Orders from "./pages/Orders";
+import Inventory from "./pages/Inventory";
+import Pricing from "./pages/Pricing";
+import Reports from "./pages/Reports";
+import NotFound from "./pages/NotFound";
+import { useAuthStore } from "./store/authStore";
 
 const App: React.FC = () => {
-  const token = useAuthStore(s => s.token);
+  const token = useAuthStore((s) => s.token);
 
   if (!token) {
     return (

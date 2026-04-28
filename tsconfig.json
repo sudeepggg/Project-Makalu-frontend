@@ -5,6 +5,8 @@
     "module": "ESNext",                // <--- Change this
     "moduleResolution": "bundler",      // <--- Change this for Vite
     "jsx": "react-jsx",
+    "module": "node16",
+    "moduleResolution": "Node16",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
