@@ -1,5 +1,7 @@
-import create from 'zustand';
-import { Order } from '../types/order';
+
+import { create } from 'zustand';
+import type { Order } from '../types/order';
+
 
 type State = {
   orders: Order[];

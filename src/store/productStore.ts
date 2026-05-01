@@ -1,5 +1,6 @@
-import create from 'zustand';
-import { Product } from '../types/product';
+import { create } from "zustand";
+import type { Product } from "../types/product";
+
 
 type State = {
   products: Product[];

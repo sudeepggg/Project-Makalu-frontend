@@ -1,6 +1,6 @@
-import { useAuthStore } from '../../store/authStore';
 import api from '../api/client';
 import { endpoints } from '../api/endpoints';
+import { useAuthStore } from '../store/authStore';
 
 export function useAuth() {
   const setAuth = useAuthStore(s => s.setAuth);

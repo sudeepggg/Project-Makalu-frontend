@@ -1,8 +1,9 @@
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
+import "./input.css";
+import Login from "./pages/Login";
+import { useAuthStore } from "./store/authStore";
 import Header from "./components/common/Header";
 import Sidebar from "./components/common/Sidebar";
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
@@ -11,9 +12,8 @@ import Inventory from "./pages/Inventory";
 import Pricing from "./pages/Pricing";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
-import { useAuthStore } from "./store/authStore";
 
-const App: React.FC = () => {
+function App() {
   const token = useAuthStore((s) => s.token);
 
   if (!token) {
@@ -24,7 +24,6 @@ const App: React.FC = () => {
       </Routes>
     );
   }
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -46,6 +45,6 @@ const App: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default App;
