@@ -1,39 +1,42 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+export interface AuthUser {
+  id: string;
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  roles?: string[];
+}
 
 interface AuthState {
   token: string | null;
-  user: {
-    id: string;
-    username?: string;
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    roles?: string[];
-  } | null;
-  setAuth: (user: AuthState['user'], token: string | null) => void;
+  user: AuthUser | null;
+  setAuth: (user: AuthUser | null, token: string | null) => void;
   clearAuth: () => void;
+  hasRole: (role: string) => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  token: localStorage.getItem('authToken'),
-  user: (() => {
-    try {
-      const u = localStorage.getItem('user');
-      return u ? JSON.parse(u) : null;
-    } catch {
-      return null;
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      token: null,
+      user: null,
+
+      setAuth: (user, token) => set({ user, token }),
+
+      clearAuth: () => set({ user: null, token: null }),
+
+      hasRole: (role) => get().user?.roles?.includes(role) ?? false,
+    }),
+    {
+      name: 'auth-storage',                          // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // partialize: (state) => ({                      // only persist what's needed
+      //   token: state.token,
+      //   user: state.user,
+      // }),
     }
-  })(),
-  setAuth: (user, token) => {
-    if (token) localStorage.setItem('authToken', token);
-    else localStorage.removeItem('authToken');
-    if (user) localStorage.setItem('user', JSON.stringify(user));
-    else localStorage.removeItem('user');
-    set({ user, token });
-  },
-  clearAuth: () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    set({ user: null, token: null });
-  },
-}));
+  )
+);
