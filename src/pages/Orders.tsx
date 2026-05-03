@@ -18,7 +18,7 @@ const Orders: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4 fade-in">
+    <div className="space-y-4 fade-in w-full h-full">
       <div className="page-header">
         <h1 className="page-title">Orders</h1>
         <button onClick={() => setShowForm(true)} className="btn-primary">

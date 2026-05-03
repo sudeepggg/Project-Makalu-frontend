@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react';
 const Products: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   return (
-    <div className="space-y-4 fade-in">
+    <div className="space-y-4 fade-in w-full h-full">
       <div className="page-header">
         <h1 className="page-title">Products</h1>
         <button onClick={() => setShowForm(true)} className="btn-primary"><Plus size={16} /> New Product</button>

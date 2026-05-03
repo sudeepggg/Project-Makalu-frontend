@@ -39,7 +39,7 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({ id, onBack
   ];
 
   return (
-    <div className="space-y-4 fade-in">
+    <div className="space-y-4 fade-in w-full h-full">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {onBack && <button onClick={onBack} className="btn-secondary py-1.5 px-2"><ArrowLeft size={16} /></button>}
