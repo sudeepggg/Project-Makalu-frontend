@@ -2,8 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/client';
 import { endpoints } from '../../api/endpoints';
-import LoadingSpinner from '../common/LoadingSpinner';
 import { ArrowLeft } from 'lucide-react';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const ProductDetail: React.FC<{ id: string; onBack?: () => void }> = ({ id, onBack }) => {
   const { data: p, isLoading } = useQuery({

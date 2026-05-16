@@ -2,9 +2,14 @@ import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import api from "../../api/client";
 import { endpoints } from "../../api/endpoints";
+import { useCategories, useUnitOfMeasure } from "../../hooks";
 
 const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const qc = useQueryClient();
+  const { data: unitOfMeasures } = useUnitOfMeasure();
+  const { data: categories } = useCategories();
+
+
   const [form, setForm] = useState({
     sku: "",
     name: "",
@@ -92,23 +97,35 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         </div>
         <div>
           <label className="form-label">Category ID *</label>
-          <input
+          <select
             value={form.categoryId}
             onChange={(e) => set("categoryId", e.target.value)}
             className="form-field"
-            placeholder="UUID"
             required
-          />
+          >
+            <option value="">Select category</option>
+            {categories?.map((category: { id: string; name: string }) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
-          <label className="form-label">Unit of Measure ID *</label>
-          <input
+          <label className="form-label">Unit of Measure *</label>
+          <select
             value={form.unitOfMeasureId}
             onChange={(e) => set("unitOfMeasureId", e.target.value)}
             className="form-field"
-            placeholder="UUID"
             required
-          />
+          >
+            <option value="">Select unit</option>
+            {unitOfMeasures?.map((uom: { id: string; name: string }) => (
+              <option key={uom.id} value={uom.id}>
+                {uom.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="form-label">Reorder Level</label>

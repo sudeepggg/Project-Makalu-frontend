@@ -1,8 +1,8 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import Modal from "../components/common/Modal";
-import ProductForm from "./products/ProductForm";
-import ProductList from "./products/ProductList";
+import Modal from "../../components/common/Modal";
+import ProductList from "./ProductList";
+import ProductForm from "./ProductForm";
 
 const Products = () => {
   const [showForm, setShowForm] = useState(false);

@@ -1,9 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import { useForm, Controller } from "react-hook-form";
-import api from "../../api/client";
-import { endpoints } from "../../api/endpoints";
+import { Controller, useForm } from "react-hook-form";
 import { useAddCustomers } from "./hooks";
+import { useCustomersTypes } from "../../hooks";
 
 type FormValues = {
   name: string;
@@ -16,11 +14,12 @@ type FormValues = {
 
 const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const { mutateAsync: addCustomer } = useAddCustomers();
-
+  const { data: customerTypes, isLoading: typesLoading } = useCustomersTypes();
   const {
     control,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
@@ -33,34 +32,30 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     },
   });
 
-  const [error, setError] = React.useState("");
-
-  const onSubmit = (values: FormValues) => {
-    setError("");
-
+  const onSubmit = async (values: FormValues) => {
     try {
-      addCustomer(values, {
-        onSuccess: () => {
-          reset();
-          onSaved?.();
-        },
-        onError: (err: any) =>
-          setError(err?.response?.data?.message || "Failed"),
-      });
+      await addCustomer(values);
+      reset();
+      onSaved?.();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to create customer.");
+      setError("root", {
+        message: err?.response?.data?.message || "Failed to create customer.",
+      });
     }
   };
 
   return (
-    <div className="card p-5 fade-in">
-      <h3 className="font-display text-lg text-primary mb-4">New Customer</h3>
-      {error && (
+    <div className=" fade-in">
+      {/* <h3 className="font-display text-lg text-primary mb-4">New Customer</h3> */}
+
+      {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          {error}
+          {errors.root.message}
         </div>
       )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        {/* Name */}
         <div>
           <label className="form-label">Name *</label>
           <Controller
@@ -80,18 +75,28 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           )}
         </div>
 
+        {/* Customer Type ← added */}
         <div>
-          <label className="form-label">Customer Type ID *</label>
+          <label className="form-label">Customer Type *</label>
           <Controller
             name="customerTypeId"
             control={control}
             rules={{ required: "Customer type is required" }}
             render={({ field }) => (
-              <input
+              <select
                 {...field}
                 className="form-field"
-                placeholder="UUID from DB"
-              />
+                disabled={typesLoading}
+              >
+                <option value="">
+                  {typesLoading ? "Loading..." : "Select type"}
+                </option>
+                {customerTypes?.map((t: any) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
             )}
           />
           {errors.customerTypeId && (
@@ -99,11 +104,9 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
               {errors.customerTypeId.message}
             </p>
           )}
-          <p className="text-xs text-ink-faint mt-1">
-            Use the customer type UUID from your database seed
-          </p>
         </div>
 
+        {/* Email + Phone */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="form-label">Email</label>
@@ -140,6 +143,7 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           </div>
         </div>
 
+        {/* City + Credit Limit */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="form-label">City</label>
@@ -167,6 +171,10 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                   type="number"
                   className="form-field"
                   min={0}
+                  onChange={(e) => {
+                    const val = e.target.valueAsNumber;
+                    field.onChange(isNaN(val) ? 0 : val);
+                  }}
                 />
               )}
             />
@@ -180,7 +188,7 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || typesLoading}
           className="btn-primary w-full justify-center"
         >
           {isSubmitting ? (
