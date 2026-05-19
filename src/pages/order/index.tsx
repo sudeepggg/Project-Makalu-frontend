@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import OrderList from '../components/order/OrderList';
-import OrderForm from '../components/order/OrderForm';
-import OrderDetail from '../components/order/OrderDetail';
-import Modal from '../components/common/Modal';
-import { Plus } from 'lucide-react';
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import Modal from "../../components/common/Modal";
+import OrderDetail from "./OrderDetail";
+import OrderForm from "./OrderForm";
+import OrderList from "./OrderList";
 
-const Orders: React.FC = () => {
+const Orders = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -25,8 +25,13 @@ const Orders: React.FC = () => {
           <Plus size={16} /> New Order
         </button>
       </div>
-      <OrderList onSelect={id => setSelectedId(id)} />
-      <Modal open={showForm} onClose={() => setShowForm(false)} title="Create Order" size="md">
+      <OrderList onSelect={(id) => setSelectedId(id)} />
+      <Modal
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        title="Create Order"
+        size="md"
+      >
         <OrderForm onSaved={() => setShowForm(false)} />
       </Modal>
     </div>

@@ -4,12 +4,12 @@ import Dashboard from "../pages/dashboard/index.";
 import Inventory from "../pages/Inventory";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
-import Orders from "../pages/Orders";
 import Pricing from "../pages/Pricing";
 import Products from "../pages/Products";
 import Reports from "../pages/Reports";
 import GuestLayout from "../layout/guestLayout";
 import AuthLayout from "../layout";
+import Orders from "../pages/order";
 
 export const router = createBrowserRouter([
   {

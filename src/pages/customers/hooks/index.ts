@@ -5,7 +5,7 @@ import {
   getCustomersDetail
 } from "../services";
 
-export const useCustomers = (body: any) => {
+export const useCustomers = (body?: any) => {
   return useQuery({
     queryKey: ["customers", body],
     queryFn: async () => {
@@ -24,7 +24,6 @@ export const useCustomersDetails = (id: any) => {
     },
   });
 };
-
 
 
 export const useAddCustomers = () => {

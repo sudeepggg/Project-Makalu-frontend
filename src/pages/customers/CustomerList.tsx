@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useCustomers } from "../../hooks/useCustomers";
 import CustomerDetail from "./CustomerDetail";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { useCustomers } from "./hooks";
 
 const CustomerList: React.FC = () => {
   const [search, setSearch] = useState("");
@@ -23,10 +23,15 @@ const CustomerList: React.FC = () => {
     search: debouncedSearch || undefined,
     page,
   });
-  
-  const customers = result?.data || [];
-  const pagination = result?.pagination;
 
+  const customers = result?.data || [];
+  const pagination = result?.pagination ?? {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  };
+  
   if (isLoading && !debouncedSearch) return <LoadingSpinner />;
   if (isError)
     return (

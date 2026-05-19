@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAddProducts, getProducts } from "../services";
 
-export const useProducts = (params: any) => {
+export const useProducts = (params?: any) => {
   return useQuery({
     queryKey: ["products", params],
     queryFn: async () => {

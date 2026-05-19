@@ -22,6 +22,7 @@ export const useUnitOfMeasure = () => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
 export const useCategories = () => {
   return useQuery({
     queryKey: ["categories"],
