@@ -10,6 +10,7 @@ import Reports from "../pages/Reports";
 import GuestLayout from "../layout/guestLayout";
 import AuthLayout from "../layout";
 import Orders from "../pages/order";
+import Suppliers from "../pages/suppliers";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
       { path: "inventory",  element: <Inventory /> },
       { path: "pricing",    element: <Pricing /> },
       { path: "reports",    element: <Reports /> },
+      { path: "suppliers",    element: <Suppliers /> },
     ],
   },
   { path: "*", element: <NotFound /> },

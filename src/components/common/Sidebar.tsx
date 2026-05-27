@@ -18,6 +18,7 @@ const nav = [
   { to: "/inventory", label: "Inventory", Icon: Warehouse },
   { to: "/pricing", label: "Pricing", Icon: Tag },
   { to: "/reports", label: "Reports", Icon: BarChart3 },
+  { to: "/suppliers", label: "Suppliers", Icon: Users },
 ];
 
 const Sidebar: React.FC = () => (

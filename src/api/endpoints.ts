@@ -10,6 +10,7 @@ export const endpoints = {
   unitOfMeasure: "/products/units",
   categories: "/products/categories",
   products: "/products",
+  suppliers: "/suppliers",
   orders: "/orders",
   inventory: "/inventory",
   pricing: "/pricing",
