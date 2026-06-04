@@ -7,7 +7,7 @@ import { useProducts } from "../products/hooks";
 
 const OrderForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const { mutateAsync } = useSaveOrder();
-  
+
   const { data: customerList, isLoading: customerLoading } = useCustomers();
   const { data: productList, isLoading: productsLoading } = useProducts();
 
@@ -152,7 +152,7 @@ const OrderForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                       {...field}
                       type="number"
                       className="form-field w-20 text-sm"
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                   )}
                 />

@@ -55,6 +55,7 @@ const ProductList = () => {
               <th>Name</th>
               <th>Category</th>
               <th>Base Price</th>
+              <th>Cost Price</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -77,6 +78,9 @@ const ProductList = () => {
                 <td className="text-ink-muted">{p.category?.name || "—"}</td>
                 <td className="font-mono text-sm">
                   NPR {p.basePrice?.toLocaleString()}
+                </td>
+                <td className="font-mono text-sm">
+                  NPR {p.costPrice?.toLocaleString()}
                 </td>
                 <td>
                   <span

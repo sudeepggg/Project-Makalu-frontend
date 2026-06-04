@@ -8,6 +8,12 @@ export const getAddProducts = (body: any) => {
     data: body,
   });
 };
+export const getDetailProducts = (body: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.products}/${body.id}`,
+    method: "GET",
+  });
+};
 
 export const getProducts = (params: any) => {
   return request<{

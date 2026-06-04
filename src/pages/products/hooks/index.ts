@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAddProducts, getProducts } from "../services";
+import { getAddProducts, getDetailProducts, getProducts } from "../services";
 
 export const useProducts = (params?: any) => {
   return useQuery({
@@ -10,6 +10,16 @@ export const useProducts = (params?: any) => {
         data: res.data.data || [],
         pagination: res.data.pagination,
       };
+    },
+  });
+};
+
+export const useDetailProducts = (params?: any) => {
+  return useQuery({
+    queryKey: ["product-detail", params],
+    queryFn: async () => {
+      const res = await getDetailProducts(params);
+      return res.data;
     },
   });
 };

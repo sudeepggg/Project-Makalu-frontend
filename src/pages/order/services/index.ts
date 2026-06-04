@@ -24,9 +24,9 @@ export const getSaveOrder = (params: any) => {
   });
 };
 
-export const getConfirmOrder = (orderId: string) => {
+export const getConfirmOrder = (orderId: string, orderType: string) => {
   return request<{ data: any }>({
-    url: `${endpoints.orders}/${orderId}/confirm`,
+    url: `${endpoints.orders}/${orderId}/${orderType}`,
     method: "POST",
   });
 };

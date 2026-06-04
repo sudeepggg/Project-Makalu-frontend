@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Customers from "../pages/customers";
 import Dashboard from "../pages/dashboard/index.";
-import Inventory from "../pages/Inventory";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
 import Pricing from "../pages/Pricing";
@@ -11,6 +10,7 @@ import GuestLayout from "../layout/guestLayout";
 import AuthLayout from "../layout";
 import Orders from "../pages/order";
 import Suppliers from "../pages/suppliers";
+import Inventory from "../pages/Inventory";
 
 export const router = createBrowserRouter([
   {

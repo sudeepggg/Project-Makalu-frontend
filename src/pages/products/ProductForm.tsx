@@ -1,9 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import api from "../../api/client";
 import { endpoints } from "../../api/endpoints";
 import { useCategories, useUnitOfMeasure } from "../../hooks";
 import { useSuppliers } from "../suppliers/hooks";
+
+type ProductFormValues = {
+  sku: string;
+  name: string;
+  description: string;
+  categoryId: string;
+  unitOfMeasureId: string;
+  basePrice: number;
+  costPrice: number;
+  reorderLevel: number;
+  supplierId: string;
+};
 
 const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const qc = useQueryClient();
@@ -12,106 +25,157 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const { data: suppliersResult } = useSuppliers();
   const suppliers = suppliersResult?.data || [];
 
-  const [form, setForm] = useState({
-    sku: "",
-    name: "",
-    description: "",
-    categoryId: "",
-    unitOfMeasureId: "",
-    basePrice: 0,
-    reorderLevel: 0,
-    supplierId: "",
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<ProductFormValues>({
+    defaultValues: {
+      sku: "",
+      name: "",
+      description: "",
+      categoryId: "",
+      unitOfMeasureId: "",
+      basePrice: 0,
+      costPrice: 0,
+      reorderLevel: 0,
+      supplierId: "",
+    },
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const set = (k: keyof typeof form, v: any) =>
-    setForm((f) => ({ ...f, [k]: v }));
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const onSubmit = async (data: ProductFormValues) => {
     try {
       await api.post(endpoints.products, {
-        ...form,
-        basePrice: Number(form.basePrice),
-        reorderLevel: Number(form.reorderLevel),
+        ...data,
+        basePrice: Number(data.basePrice),
+        costPrice: Number(data.costPrice),
+        reorderLevel: Number(data.reorderLevel),
       });
-      setForm({
-        sku: "",
-        name: "",
-        description: "",
-        categoryId: "",
-        unitOfMeasureId: "",
-        basePrice: 0,
-        reorderLevel: 0,
-        supplierId: "",
-      });
+      reset();
       qc.invalidateQueries({ queryKey: ["products"] });
       onSaved?.();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to create product.");
-    } finally {
-      setLoading(false);
+      setError("root", {
+        message: err?.response?.data?.message || "Failed to create product.",
+      });
     }
   };
 
   return (
     <div className="card p-5 fade-in">
       <h3 className="font-display text-lg text-primary mb-4">New Product</h3>
-      {error && (
+
+      {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          {error}
+          {errors.root.message}
         </div>
       )}
-      <form onSubmit={submit} className="space-y-3">
-        {/* SKU and Base Price */}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        {/* SKU */}
+        <div>
+          <label className="form-label">SKU *</label>
+          <Controller
+            name="sku"
+            control={control}
+            rules={{ required: "SKU is required" }}
+            render={({ field }) => (
+              <input {...field} className="form-field" placeholder="PRD-001" />
+            )}
+          />
+          {errors.sku && (
+            <p className="text-red-500 text-xs mt-1">{errors.sku.message}</p>
+          )}
+        </div>
+
+        {/* Base Price and Cost Price */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="form-label">SKU *</label>
-            <input
-              value={form.sku}
-              onChange={(e) => set("sku", e.target.value)}
-              className="form-field"
-              placeholder="PRD-001"
-              required
+            <label className="form-label">Base Price (NPR) *</label>
+            <Controller
+              name="basePrice"
+              control={control}
+              rules={{
+                required: "Base price is required",
+                min: { value: 0, message: "Must be 0 or more" },
+              }}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="number"
+                  className="form-field"
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
             />
+            {errors.basePrice && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.basePrice.message}
+              </p>
+            )}
           </div>
           <div>
-            <label className="form-label">Base Price (NPR) *</label>
-            <input
-              type="number"
-              value={form.basePrice}
-              onChange={(e) => set("basePrice", e.target.value)}
-              className="form-field"
-              min={0}
-              required
+            <label className="form-label">Cost Price (NPR) *</label>
+            <Controller
+              name="costPrice"
+              control={control}
+              rules={{
+                required: "Cost price is required",
+                min: { value: 0, message: "Must be 0 or more" },
+              }}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="number"
+                  className="form-field"
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
             />
+            {errors.costPrice && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.costPrice.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Product Name */}
+        {/* Name */}
         <div>
           <label className="form-label">Name *</label>
-          <input
-            value={form.name}
-            onChange={(e) => set("name", e.target.value)}
-            className="form-field"
-            placeholder="Product name"
-            required
+          <Controller
+            name="name"
+            control={control}
+            rules={{ required: "Product name is required" }}
+            render={({ field }) => (
+              <input
+                {...field}
+                className="form-field"
+                placeholder="Product name"
+              />
+            )}
           />
+          {errors.name && (
+            <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         {/* Description */}
         <div>
           <label className="form-label">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => set("description", e.target.value)}
-            className="form-field resize-none"
-            placeholder="Product description..."
-            rows={3}
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <textarea
+                {...field}
+                className="form-field resize-none"
+                placeholder="Product description..."
+                rows={3}
+              />
+            )}
           />
         </div>
 
@@ -119,35 +183,49 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="form-label">Category *</label>
-            <select
-              value={form.categoryId}
-              onChange={(e) => set("categoryId", e.target.value)}
-              className="form-field"
-              required
-            >
-              <option value="">Select category</option>
-              {categories?.map((category: { id: string; name: string }) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="categoryId"
+              control={control}
+              rules={{ required: "Category is required" }}
+              render={({ field }) => (
+                <select {...field} className="form-field">
+                  <option value="">Select category</option>
+                  {categories?.map((category: { id: string; name: string }) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            {errors.categoryId && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.categoryId.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="form-label">Unit of Measure *</label>
-            <select
-              value={form.unitOfMeasureId}
-              onChange={(e) => set("unitOfMeasureId", e.target.value)}
-              className="form-field"
-              required
-            >
-              <option value="">Select unit</option>
-              {unitOfMeasures?.map((uom: { id: string; name: string }) => (
-                <option key={uom.id} value={uom.id}>
-                  {uom.name}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="unitOfMeasureId"
+              control={control}
+              rules={{ required: "Unit of measure is required" }}
+              render={({ field }) => (
+                <select {...field} className="form-field">
+                  <option value="">Select unit</option>
+                  {unitOfMeasures?.map((uom: { id: string; name: string }) => (
+                    <option key={uom.id} value={uom.id}>
+                      {uom.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            {errors.unitOfMeasureId && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.unitOfMeasureId.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -155,37 +233,50 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="form-label">Reorder Level</label>
-            <input
-              type="number"
-              value={form.reorderLevel}
-              onChange={(e) => set("reorderLevel", e.target.value)}
-              className="form-field"
-              min={0}
+            <Controller
+              name="reorderLevel"
+              control={control}
+              rules={{ min: { value: 0, message: "Must be 0 or more" } }}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="number"
+                  className="form-field"
+                  onChange={(e) => field.onChange((e.target.value))}
+                />
+              )}
             />
+            {errors.reorderLevel && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.reorderLevel.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="form-label">Supplier</label>
-            <select
-              value={form.supplierId}
-              onChange={(e) => set("supplierId", e.target.value)}
-              className="form-field"
-            >
-              <option value="">Select supplier</option>
-              {suppliers?.map((supplier: { id: string; name: string }) => (
-                <option key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="supplierId"
+              control={control}
+              render={({ field }) => (
+                <select {...field} className="form-field">
+                  <option value="">Select supplier</option>
+                  {suppliers?.map((supplier: { id: string; name: string }) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
           </div>
         </div>
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="btn-primary w-full justify-center"
         >
-          {loading ? (
+          {isSubmitting ? (
             <>
               <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
               Saving…
@@ -198,4 +289,5 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     </div>
   );
 };
+
 export default ProductForm;

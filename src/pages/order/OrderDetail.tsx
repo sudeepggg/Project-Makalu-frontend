@@ -1,8 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import React from "react";
-import api from "../../api/client";
-import { endpoints } from "../../api/endpoints";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useConfirmOrder, useOrdersDetails } from "./hooks";
 
@@ -27,19 +24,12 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
   id,
   onBack,
 }) => {
-  const { mutate: confirmOrder, isPending: confirmPending } = useConfirmOrder();
+  const [currentAction, setCurrentAction] = React.useState<string>("confirm");
+  const { mutate: confirmOrder, isPending: confirmPending } = useConfirmOrder(
+    id,
+    currentAction,
+  );
   const { data: order, isLoading } = useOrdersDetails(id);
-
-  // const mutation = useMutation({
-  //   mutationFn: async (action: string) =>
-  //     (await api.post(`${endpoints.orders}/${id}/${action}`)).data.data,
-  //   onSuccess: () => {
-  //     qc.invalidateQueries({ queryKey: ["order", id] });
-  //     qc.invalidateQueries({ queryKey: ["orders"] });
-  //   },
-  //   onError: (err: any) =>
-  //     alert(err?.response?.data?.message ?? "Action failed"),
-  // });
 
   if (isLoading) return <LoadingSpinner />;
   if (!order) return null;
@@ -98,12 +88,8 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
               <button
                 key={a.action}
                 onClick={() => {
-                  if (a.action === "confirm") {
-                    confirmOrder(id, {
-                      onSuccess: () => console.log("Order confirmed"),
-                      onError: (err: any) => console.error(err?.message),
-                    });
-                  }
+                  setCurrentAction(a.action);
+                  confirmOrder();
                 }}
                 disabled={confirmPending}
                 className={a.cls}

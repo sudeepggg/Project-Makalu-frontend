@@ -8,6 +8,7 @@ type FormValues = {
   customerTypeId: string;
   email: string;
   phone: string;
+  alternatePhone: string;
   city: string;
   creditLimit: number;
 };
@@ -27,6 +28,7 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       customerTypeId: "",
       email: "",
       phone: "",
+      alternatePhone: "",
       city: "",
       creditLimit: 0,
     },
@@ -34,7 +36,13 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await addCustomer(values);
+      await addCustomer({
+        ...values,
+        creditLimit: Number(values.creditLimit),
+        phone: values.phone || undefined,
+        alternatePhone: values.alternatePhone || null,
+        email: values.email || undefined,
+      });
       reset();
       onSaved?.();
     } catch (err: any) {
@@ -83,11 +91,7 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
             control={control}
             rules={{ required: "Customer type is required" }}
             render={({ field }) => (
-              <select
-                {...field}
-                className="form-field"
-                disabled={typesLoading}
-              >
+              <select {...field} className="form-field" disabled={typesLoading}>
                 <option value="">
                   {typesLoading ? "Loading..." : "Select type"}
                 </option>
@@ -107,34 +111,42 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         </div>
 
         {/* Email + Phone */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="form-label">Email</label>
-            <Controller
-              name="email"
-              control={control}
-              rules={{
-                pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email" },
-              }}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="email"
-                  className="form-field"
-                  placeholder="email@example.com"
-                />
-              )}
-            />
-            {errors.email && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.email.message}
-              </p>
+        <div>
+          <label className="form-label">Email</label>
+          <Controller
+            name="email"
+            control={control}
+            rules={{
+              pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email" },
+            }}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="email"
+                className="form-field"
+                placeholder="email@example.com"
+              />
             )}
-          </div>
+          />
+          {errors.email && (
+            <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="form-label">Phone</label>
             <Controller
               name="phone"
+              control={control}
+              render={({ field }) => (
+                <input {...field} className="form-field" placeholder="+977-…" />
+              )}
+            />
+          </div>
+          <div>
+            <label className="form-label">Alternate Phone</label>
+            <Controller
+              name="alternatePhone"
               control={control}
               render={({ field }) => (
                 <input {...field} className="form-field" placeholder="+977-…" />
@@ -164,17 +176,16 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
             <Controller
               name="creditLimit"
               control={control}
-              rules={{ min: { value: 0, message: "Must be 0 or more" } }}
+              rules={{
+                required: "Credit limit is required",
+                min: { value: 0, message: "Must be 0 or more" },
+              }}
               render={({ field }) => (
                 <input
                   {...field}
                   type="number"
                   className="form-field"
-                  min={0}
-                  onChange={(e) => {
-                    const val = e.target.valueAsNumber;
-                    field.onChange(isNaN(val) ? 0 : val);
-                  }}
+                  onChange={(e) => field.onChange(e.target.value)}
                 />
               )}
             />
