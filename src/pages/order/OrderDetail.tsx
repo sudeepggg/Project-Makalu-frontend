@@ -24,11 +24,9 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
   id,
   onBack,
 }) => {
-  const [currentAction, setCurrentAction] = React.useState<string>("confirm");
-  const { mutate: confirmOrder, isPending: confirmPending } = useConfirmOrder(
-    id,
-    currentAction,
-  );
+  // const [currentAction, setCurrentAction] = React.useState<string>("confirm");
+  const { mutate: confirmOrder, isPending: confirmPending } =
+    useConfirmOrder(id);
   const { data: order, isLoading } = useOrdersDetails(id);
 
   if (isLoading) return <LoadingSpinner />;
@@ -38,24 +36,28 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
     status: string;
     action: string;
     label: string;
+    pendingLabel: string;
     cls: string;
   }[] = [
     {
       status: "DRAFT",
       action: "confirm",
       label: "Confirm",
+      pendingLabel: "Confirming…",
       cls: "btn-primary",
     },
     {
       status: "CONFIRMED",
       action: "dispatch",
       label: "Dispatch",
+      pendingLabel: "Dispatching…",
       cls: "inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-all disabled:opacity-50",
     },
     {
       status: "DISPATCHED",
       action: "deliver",
       label: "Mark Delivered",
+      pendingLabel: "Delivering…",
       cls: "inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all disabled:opacity-50",
     },
   ];
@@ -88,13 +90,19 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
               <button
                 key={a.action}
                 onClick={() => {
-                  setCurrentAction(a.action);
-                  confirmOrder();
+                  confirmOrder(a.action);
                 }}
                 disabled={confirmPending}
                 className={a.cls}
               >
-                {confirmPending ? "Processing…" : a.label}
+                {confirmPending ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {a.pendingLabel}
+                  </>
+                ) : (
+                  a.label
+                )}
               </button>
             ))}
         </div>

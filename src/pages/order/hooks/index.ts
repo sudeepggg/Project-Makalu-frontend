@@ -37,12 +37,13 @@ export const useSaveOrder = () => {
   });
 };
 
-export const useConfirmOrder = (orderId: string, orderType: string) => {
+export const useConfirmOrder = (orderId: string) => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: () => getConfirmOrder(orderId, orderType),
+    mutationFn: (orderType: string) => getConfirmOrder(orderId, orderType),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orders", orderId] });
       qc.invalidateQueries({ queryKey: ["orders"] });
     },
   });

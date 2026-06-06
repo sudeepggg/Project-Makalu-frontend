@@ -63,8 +63,8 @@ export function useAuth() {
     navigate("/login", { replace: true });
   };
 
-  const hasRole = (role: string) =>
-    user?.roles?.some((r: string) => r === role) ?? false;
+  const hasRole = (role: string): boolean =>
+    user?.roles?.includes(role) ?? false;   
 
   const hasAny = (roles: string[]) =>
     roles.some((r) => user?.roles?.includes(r)) ?? false;

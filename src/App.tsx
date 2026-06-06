@@ -18,6 +18,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Sidebar from "./components/common/Sidebar";
 import Pricing from "./pages/Pricing";
+import Register from "./pages/Register";
 
 function AppShell() {
   return (
@@ -33,7 +34,10 @@ function AppShell() {
 const router = createBrowserRouter([
   {
     element: <GuestRoute />,
-    children: [{ path: "/login", element: <Login /> }],
+    children: [
+      { path: "/login", element: <Login /> },
+      { path: "/register", element: <Register /> },
+    ],
   },
   {
     element: <ProtectedRoute />,
@@ -60,6 +64,7 @@ const router = createBrowserRouter([
   },
   { path: "/unauthorized", element: <NotFound /> },
   { path: "/", element: <Navigate to="/dashboard" replace /> },
+  { path: "*", element: <Navigate to="/dashboard" replace /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);
 

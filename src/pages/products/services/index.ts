@@ -6,6 +6,9 @@ export const getAddProducts = (body: any) => {
     url: `${endpoints.products}`,
     method: "POST",
     data: body,
+    headers:{
+      contentType: "multipart/form-data"
+    }
   });
 };
 export const getDetailProducts = (body: any) => {

@@ -15,10 +15,24 @@ export const getCustomersDetail = (params: any) => {
   });
 };
 
-
 export const getAddCustomers = (body: any) => {
   return request<{ data: any }>({
     url: `${endpoints.customers}`,
+    method: "POST",
+    data: body,
+  });
+};
+
+export const getUpdateCustomer = (body: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.customers}/${body.id}`,
+    method: "PUT",
+    data: body,
+  });
+};
+export const getToggleCustomer = (body: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.customers}/${body.id}/toggle-active`,
     method: "POST",
     data: body,
   });

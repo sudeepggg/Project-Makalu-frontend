@@ -1,7 +1,6 @@
-import React from "react";
 import { Controller, useForm } from "react-hook-form";
-import { useAddCustomers } from "./hooks";
 import { useCustomersTypes } from "../../hooks";
+import { useAddCustomers, useUpdateCustomers } from "./hooks";
 
 type FormValues = {
   name: string;
@@ -13,9 +12,17 @@ type FormValues = {
   creditLimit: number;
 };
 
-const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
+type Props = {
+  onSaved?: () => void;
+  customers?: any[];
+};
+
+const CustomerForm = ({ customers,onSaved }: Props) => {
   const { mutateAsync: addCustomer } = useAddCustomers();
+  const { mutateAsync: updateCustomer } = useUpdateCustomers();
   const { data: customerTypes, isLoading: typesLoading } = useCustomersTypes();
+  const isEdit = Boolean(customers);
+
   const {
     control,
     handleSubmit,
@@ -24,27 +31,36 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
-      name: "",
-      customerTypeId: "",
-      email: "",
-      phone: "",
-      alternatePhone: "",
-      city: "",
-      creditLimit: 0,
+      name: isEdit ? customers?.[0]?.name || "" : "",
+      customerTypeId: isEdit ? customers?.[0]?.customerTypeId || "" : "",
+      email: isEdit ? customers?.[0]?.email || "" : "",
+      phone: isEdit ? customers?.[0]?.phone || "" : "",
+      alternatePhone: isEdit ? customers?.[0]?.alternatePhone || "" : "",
+      city: isEdit ? customers?.[0]?.city || "" : "",
+      creditLimit: isEdit ? customers?.[0]?.creditLimit || 0 : 0,
     },
   });
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await addCustomer({
-        ...values,
-        creditLimit: Number(values.creditLimit),
-        phone: values.phone || undefined,
-        alternatePhone: values.alternatePhone || null,
-        email: values.email || undefined,
-      });
+      isEdit
+        ? await updateCustomer({
+            ...values,
+            creditLimit: Number(values.creditLimit),
+            phone: values.phone || undefined,
+            alternatePhone: values.alternatePhone || null,
+            email: values.email || undefined,
+            id: customers?.[0]?.id,
+          })
+        : await addCustomer({
+            ...values,
+            creditLimit: Number(values.creditLimit),
+            phone: values.phone || undefined,
+            alternatePhone: values.alternatePhone || null,
+            email: values.email || undefined,
+          });
+          onSaved?.();
       reset();
-      onSaved?.();
     } catch (err: any) {
       setError("root", {
         message: err?.response?.data?.message || "Failed to create customer.",
@@ -54,8 +70,6 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
   return (
     <div className=" fade-in">
-      {/* <h3 className="font-display text-lg text-primary mb-4">New Customer</h3> */}
-
       {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           {errors.root.message}
@@ -207,6 +221,8 @@ const CustomerForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
               <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
               Saving…
             </>
+          ) : isEdit ? (
+            "Update Customer"
           ) : (
             "Create Customer"
           )}

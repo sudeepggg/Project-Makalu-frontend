@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getAddCustomers,
   getCustomers,
-  getCustomersDetail
+  getCustomersDetail,
+  getToggleCustomer,
+  getUpdateCustomer
 } from "../services";
 
 export const useCustomers = (body?: any) => {
@@ -31,6 +33,29 @@ export const useAddCustomers = () => {
 
   return useMutation({
     mutationFn: (body: any) => getAddCustomers(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+    },
+  });
+};
+
+export const useUpdateCustomers = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: any) => getUpdateCustomer(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers-details"] });
+    },
+  });
+};
+
+export const useToggleCustomer = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: any) => getToggleCustomer(body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["customers"] });
     },
