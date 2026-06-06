@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-import { endpoints } from "../../api/endpoints";
 import { useOrders } from "./hooks";
 
 const statusColors: Record<string, string> = {

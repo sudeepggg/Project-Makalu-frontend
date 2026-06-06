@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mountain, AlertCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';   //  use the hook you already built — don't inline API logic
+import { useAuth } from '../hooks/useAuth'; 
 
 const Login: React.FC = () => {
   //  remove hardcoded credentials — use empty strings in production
@@ -87,7 +87,7 @@ const Login: React.FC = () => {
                 className="form-field"
                 placeholder="••••••••"
                 required
-                autoComplete="current-password"   //  password manager hint
+                autoComplete="current-password" 
               />
             </div>
 
