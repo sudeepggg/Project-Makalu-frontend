@@ -6,7 +6,7 @@ import api from "../../api/client";
 import { endpoints } from "../../api/endpoints";
 import { useCategories, useUnitOfMeasure } from "../../hooks";
 import { useSuppliers } from "../suppliers/hooks";
-import { useAddProducts } from "./hooks";
+import { useAddProducts, useUpdateProducts } from "./hooks";
 
 type ProductFormValues = {
   sku: string;
@@ -22,12 +22,19 @@ type ProductFormValues = {
   supplierId: string;
 };
 
-const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
+const ProductForm: React.FC<{ onSaved?: () => void; products?: any[] }> = ({
+  onSaved,
+  products,
+}) => {
   const qc = useQueryClient();
   const { data: unitOfMeasures } = useUnitOfMeasure();
   const { data: categories } = useCategories();
   const { data: suppliersResult } = useSuppliers();
+
+  const isEditMode = Boolean(products);
+
   const { mutateAsync } = useAddProducts();
+  const { mutateAsync: updateProducts } = useUpdateProducts();
   const suppliers = suppliersResult?.data || [];
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -85,8 +92,11 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       if (data.supplierId) formData.append("supplierId", data.supplierId);
       if (imageFile) formData.append("image", imageFile);
 
-      await mutateAsync(formData);
-
+      if (isEditMode) {
+        await updateProducts({ id: products[0]?.id, ...formData });
+      } else {
+        await mutateAsync(formData);
+      }
       reset();
       removeImage();
       qc.invalidateQueries({ queryKey: ["products"] });
@@ -99,7 +109,7 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   };
 
   return (
-    <div className=" fade-in">
+    <div className="h-full">
       {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           {errors.root.message}
@@ -414,6 +424,8 @@ const ProductForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
               <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Saving…
             </>
+          ) : isEditMode ? (
+            "Update Product"
           ) : (
             "Create Product"
           )}

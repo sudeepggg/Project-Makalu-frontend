@@ -31,7 +31,7 @@ const Modal: React.FC<ModalProps> = ({
       className="fixed top-0 left-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50  w-full h-full !m-0"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className={`card w-full ${w} shadow-modal fade-in`}>
+      <div className={`card w-full ${w} shadow-modal`}>
         <div className="flex items-center justify-between p-5 border-b border-surface-200">
           <h3 className="font-display text-xl text-primary">{title}</h3>
           <button

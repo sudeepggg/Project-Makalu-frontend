@@ -11,6 +11,18 @@ export const getAddProducts = (body: any) => {
     }
   });
 };
+
+export const getUpdateProducts = (body: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.products}/${body.id}`,
+    method: "PUT",
+    data: body,
+    headers:{
+      contentType: "multipart/form-data"
+    }
+  });
+};
+
 export const getDetailProducts = (body: any) => {
   return request<{ data: any }>({
     url: `${endpoints.products}/${body.id}`,

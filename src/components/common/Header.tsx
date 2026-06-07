@@ -1,4 +1,4 @@
-import { LogOut, Mountain } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
@@ -20,16 +20,16 @@ const Header = () => {
   }, [clearAuth, navigate]);
 
   return (
-    <header className="h-14 bg-primary flex items-center justify-between px-6 shadow-md sticky top-0 z-40">
+    <header className="h-14 bg-primary-600 flex items-center justify-end px-6 shadow-md sticky top-0 z-40">
   
-      <button
+      {/* <button
         onClick={() => navigate('/dashboard')}
         className="flex items-center gap-2.5"
         aria-label="Go to dashboard"
       >
         <Mountain size={22} className="text-accent" aria-hidden />
         <span className="font-display text-xl text-white tracking-wide">Project Makalu</span>
-      </button>
+      </button> */}
 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">

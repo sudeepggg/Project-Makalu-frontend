@@ -23,3 +23,12 @@ export const getSupplierDetails = (params: any) => {
     method: "GET",
   });
 };
+
+export const getToggleSupplier = (body: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.suppliers}/${body.id}/active`,
+    method: "POST",
+    data: body,
+  });
+};
+

@@ -11,14 +11,14 @@ const Orders = () => {
 
   if (selectedId) {
     return (
-      <div className="fade-in">
+      <div className="">
         <OrderDetail id={selectedId} onBack={() => setSelectedId(null)} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 fade-in w-full h-full">
+    <div className="space-y-4 w-full h-full">
       <div className="page-header">
         <h1 className="page-title">Orders</h1>
         <button onClick={() => setShowForm(true)} className="btn-primary">

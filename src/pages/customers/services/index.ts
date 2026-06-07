@@ -8,6 +8,7 @@ export const getCustomers = (params: any) => {
     params: params,
   });
 };
+
 export const getCustomersDetail = (params: any) => {
   return request<{ data: any }>({
     url: `${endpoints.customers}/${params.id}`,

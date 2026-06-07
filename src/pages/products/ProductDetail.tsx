@@ -13,7 +13,7 @@ const ProductDetail: React.FC<{ id: string; onBack?: () => void }> = ({
   if (!productDetail) return null;
 
   return (
-    <div className="card fade-in">
+    <div className="card">
       <div className="p-4 border-b border-surface-200 flex items-center gap-3">
         {onBack && (
           <button onClick={onBack} className="btn-secondary py-1.5 px-2">

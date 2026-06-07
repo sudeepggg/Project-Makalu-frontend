@@ -23,6 +23,13 @@ export const getSaveOrder = (params: any) => {
     data: params,
   });
 };
+export const getUpdateOrder = (params: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.orders}/${params.id}`,
+    method: "PUT",
+    data: params,
+  });
+};
 
 export const getConfirmOrder = (orderId: string, orderType: string) => {
   return request<{ data: any }>({

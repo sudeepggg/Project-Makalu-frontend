@@ -69,7 +69,7 @@ const CustomerForm = ({ customers,onSaved }: Props) => {
   };
 
   return (
-    <div className=" fade-in">
+    <div className="">
       {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           {errors.root.message}

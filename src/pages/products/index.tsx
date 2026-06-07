@@ -7,7 +7,7 @@ import ProductForm from "./ProductForm";
 const Products = () => {
   const [showForm, setShowForm] = useState(false);
   return (
-    <div className="space-y-4 fade-in w-full h-full">
+    <div className="space-y-4 w-full h-full">
       <div className="page-header">
         <h1 className="page-title">Products</h1>
         <button onClick={() => setShowForm(true)} className="btn-primary">

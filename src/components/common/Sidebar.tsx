@@ -2,6 +2,7 @@ import {
   BarChart3,
   LayoutDashboard,
   LogOut,
+  Mountain,
   Package,
   ShoppingCart,
   Tag,
@@ -9,7 +10,7 @@ import {
   Users,
   Warehouse,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
 const nav = [
@@ -52,7 +53,7 @@ const nav = [
     to: "/pricing",
     label: "Pricing",
     Icon: Tag,
-    roles: ["ADMIN","SALES_STAFF"],
+    roles: ["ADMIN", "SALES_STAFF"],
     section: "Management",
   },
   {
@@ -81,6 +82,7 @@ function getInitials(name: string) {
 }
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   const { fullName, isAdmin, logout } = useAuth();
   const userRole = isAdmin() ? "ADMIN" : "SALES_STAFF";
 
@@ -103,11 +105,17 @@ const Sidebar = () => {
   return (
     <aside className="flex flex-col w-56 min-h-screen bg-white border-r border-surface-200 shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-surface-200">
-        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-          <Package size={14} className="text-white" />
-        </div>
-        <span className="font-display text-lg text-primary">Nexus</span>
+      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-surface-200 ">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="flex items-center gap-2.5"
+          aria-label="Go to dashboard"
+        >
+          <Mountain size={22} className="text-accent" aria-hidden />
+          <span className="font-display text-xl text-primary tracking-wide">
+            Project Makalu
+          </span>
+        </button>
       </div>
 
       {/* Nav */}

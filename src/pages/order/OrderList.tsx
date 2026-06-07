@@ -2,6 +2,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useOrders } from "./hooks";
+import OrderForm from "./OrderForm";
+import Modal from "../../components/common/Modal";
 
 const statusColors: Record<string, string> = {
   DRAFT: "badge-draft",
@@ -15,6 +17,7 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
 }) => {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const { data: result, isLoading } = useOrders({
     page,
@@ -32,7 +35,7 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <div className="card fade-in">
+    <div className="card">
       <div className="p-4 border-b border-surface-200 flex items-center gap-3">
         <select
           value={statusFilter}
@@ -59,6 +62,7 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
               <th>Date</th>
               <th>Total</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -70,11 +74,7 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
               </tr>
             )}
             {orders.map((o: any) => (
-              <tr
-                key={o.id}
-                onClick={() => onSelect?.(o.id)}
-                className={onSelect ? "cursor-pointer" : ""}
-              >
+              <tr key={o.id} className={onSelect ? "cursor-pointer" : ""}>
                 <td className="font-mono text-xs">{o.orderNumber}</td>
                 <td className="font-medium">{o.customer?.name}</td>
                 <td className="text-ink-muted">
@@ -87,6 +87,27 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
                   <span className={statusColors[o.status] || "badge-draft"}>
                     {o.status}
                   </span>
+                </td>
+                <td className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowForm(true);
+                      // setSelectedId(c.id);
+                    }}
+                    className="btn-secondary py-1 px-2"
+                  >
+                    EDIT
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect?.(o.id);
+                    }}
+                    className="btn-secondary py-1 px-2"
+                  >
+                    View Details
+                  </button>
                 </td>
               </tr>
             ))}
@@ -117,6 +138,13 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
           </div>
         </div>
       )}
+      <Modal
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        title="Add Order"
+      >
+        <OrderForm onSaved={() => setShowForm(false)} />
+      </Modal>
     </div>
   );
 };

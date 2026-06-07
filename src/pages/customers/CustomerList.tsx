@@ -69,7 +69,7 @@ const CustomerList: React.FC = () => {
 
   return (
     <>
-      <div className="card fade-in">
+      <div className="card">
         <div className="p-4 border-b border-surface-200 flex items-center gap-3">
           <div className="relative flex-1">
             <Search

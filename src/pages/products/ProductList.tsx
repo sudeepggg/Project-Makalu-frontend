@@ -3,12 +3,14 @@ import { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ProductDetail from "./ProductDetail";
 import { useProducts } from "./hooks";
+import Modal from "../../components/common/Modal";
+import ProductForm from "./ProductForm";
 
 const ProductList = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  
+  const [showForm, setShowForm] = useState(false);
 
   const { data: result, isLoading } = useProducts({
     page: 1,
@@ -20,7 +22,7 @@ const ProductList = () => {
     page: 1,
     limit: 10,
     total: 0,
-    totalPages: 1
+    totalPages: 1,
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -29,7 +31,7 @@ const ProductList = () => {
     return <ProductDetail id={selectedId} onBack={() => setSelectedId(null)} />;
 
   return (
-    <div className="card fade-in">
+    <div className="card">
       <div className="p-4 border-b border-surface-200 flex items-center gap-3">
         <div className="relative flex-1">
           <Search
@@ -68,11 +70,7 @@ const ProductList = () => {
               </tr>
             )}
             {products.map((p: any) => (
-              <tr
-                key={p.id}
-                onClick={() => setSelectedId(p.id)}
-                className="cursor-pointer"
-              >
+              <tr key={p.id} className="cursor-pointer">
                 <td className="font-mono text-xs text-ink-muted">{p.sku}</td>
                 <td className="font-medium">{p.name}</td>
                 <td className="text-ink-muted">{p.category?.name || "—"}</td>
@@ -88,6 +86,26 @@ const ProductList = () => {
                   >
                     {p.isActive ? "Active" : "Inactive"}
                   </span>
+                </td>
+                <td className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowForm(true);
+                    }}
+                    className="btn-secondary py-1 px-2"
+                  >
+                    EDIT
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedId(p.id);
+                    }}
+                    className="btn-secondary py-1 px-2"
+                  >
+                    View Details
+                  </button>
                 </td>
               </tr>
             ))}
@@ -117,6 +135,13 @@ const ProductList = () => {
           </div>
         </div>
       )}
+      <Modal
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        title="Add Product"
+      >
+        <ProductForm onSaved={() => setShowForm(false)} products={products} />
+      </Modal>
     </div>
   );
 };
