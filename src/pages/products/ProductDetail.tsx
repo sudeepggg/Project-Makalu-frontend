@@ -1,12 +1,15 @@
-import { ArrowLeft } from "lucide-react";
-import React from "react";
+import { ArrowLeft, Sliders } from "lucide-react";
+import React, { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useDetailProducts } from "./hooks";
+import StockAdjustmentModal from "./StockAdjustmentModal";
 
 const ProductDetail: React.FC<{ id: string; onBack?: () => void }> = ({
   id,
   onBack,
 }) => {
+    const [showAdjustStock, setShowAdjustStock] = useState(false);
+
   const { data: productDetail, isLoading } = useDetailProducts({ id: id });
 
   if (isLoading) return <LoadingSpinner />;
@@ -67,6 +70,38 @@ const ProductDetail: React.FC<{ id: string; onBack?: () => void }> = ({
           </div>
         </div>
       </div>
+        {/* Adjust Stock — edit mode only */}
+        <div className="border border-border rounded-lg p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-primary">Current Stock</p>
+              <p className="text-xs text-secondary mt-0.5">
+                {productDetail?.inventories?.[0]?.quantityOnHand ?? 0} units on hand
+                {" · "}
+                {productDetail?.inventories?.[0]?.quantityAvailable ?? 0} available
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAdjustStock(true)}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-gray-50 text-secondary transition-colors"
+            >
+              <Sliders size={14} />
+              Adjust Stock
+            </button>
+          </div>
+
+          {/* Inline modal */}
+          {showAdjustStock && (
+            <div className="border-t border-border pt-3">
+              <StockAdjustmentModal
+                product={productDetail}
+                onClose={() => setShowAdjustStock(false)}
+              />
+            </div>
+          )}
+        </div>
+    
       {productDetail.inventories?.length > 0 && (
         <div className="border-t border-surface-200 p-5">
           <p className="form-label mb-3">Inventory</p>

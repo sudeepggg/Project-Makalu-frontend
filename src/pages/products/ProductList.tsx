@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Plus } from "lucide-react";
 import { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ProductDetail from "./ProductDetail";
@@ -11,12 +11,14 @@ const ProductList = () => {
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null); // ← New state
 
   const { data: result, isLoading } = useProducts({
-    page: 1,
+    page,
     limit: 10,
-    search: "",
+    search,
   });
+
   const products = result?.data || [];
   const pagination = result?.pagination ?? {
     page: 1,
@@ -30,10 +32,25 @@ const ProductList = () => {
   if (selectedId)
     return <ProductDetail id={selectedId} onBack={() => setSelectedId(null)} />;
 
+  const openAddForm = () => {
+    setEditingProduct(null);
+    setShowForm(true);
+  };
+
+  const openEditForm = (product: any) => {
+    setEditingProduct(product);
+    setShowForm(true);
+  };
+
+  const handleFormClose = () => {
+    setShowForm(false);
+    setEditingProduct(null);
+  };
+
   return (
     <div className="card">
-      <div className="p-4 border-b border-surface-200 flex items-center gap-3">
-        <div className="relative flex-1">
+      <div className="p-4 border-b border-surface-200 flex items-center justify-between">
+        <div className="relative flex-1 max-w-md">
           <Search
             size={15}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint"
@@ -48,7 +65,13 @@ const ProductList = () => {
             className="form-field pl-9 py-1.5 text-sm"
           />
         </div>
+
+        <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
+          <Plus size={18} />
+          Add Product
+        </button>
       </div>
+
       <div className="overflow-x-auto">
         <table className="table-base">
           <thead>
@@ -59,18 +82,19 @@ const ProductList = () => {
               <th>Base Price</th>
               <th>Cost Price</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {products.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center text-ink-faint py-8">
+                <td colSpan={7} className="text-center text-ink-faint py-8">
                   No products found
                 </td>
               </tr>
             )}
             {products.map((p: any) => (
-              <tr key={p.id} className="cursor-pointer">
+              <tr key={p.id} className="hover:bg-surface-100 cursor-pointer group">
                 <td className="font-mono text-xs text-ink-muted">{p.sku}</td>
                 <td className="font-medium">{p.name}</td>
                 <td className="text-ink-muted">{p.category?.name || "—"}</td>
@@ -91,9 +115,9 @@ const ProductList = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setShowForm(true);
+                      openEditForm(p);
                     }}
-                    className="btn-secondary py-1 px-2"
+                    className="btn-secondary py-1 px-3 text-xs"
                   >
                     EDIT
                   </button>
@@ -102,9 +126,9 @@ const ProductList = () => {
                       e.stopPropagation();
                       setSelectedId(p.id);
                     }}
-                    className="btn-secondary py-1 px-2"
+                    className="btn-secondary py-1 px-3 text-xs"
                   >
-                    View Details
+                    View
                   </button>
                 </td>
               </tr>
@@ -112,10 +136,13 @@ const ProductList = () => {
           </tbody>
         </table>
       </div>
-      {pagination && pagination.totalPages > 1 && (
+
+      {pagination.totalPages > 1 && (
         <div className="p-4 border-t border-surface-200 flex items-center justify-between text-sm text-ink-muted">
           <span>
-            Page {pagination.page} of {pagination.totalPages}
+            Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+            {pagination.total}
           </span>
           <div className="flex gap-2">
             <button
@@ -135,14 +162,19 @@ const ProductList = () => {
           </div>
         </div>
       )}
+
       <Modal
         open={showForm}
-        onClose={() => setShowForm(false)}
-        title="Add Product"
+        onClose={handleFormClose}
+        title={editingProduct ? "Edit Product" : "Add New Product"}
       >
-        <ProductForm onSaved={() => setShowForm(false)} products={products} />
+        <ProductForm
+          product={editingProduct}      
+          onSaved={handleFormClose}
+        />
       </Modal>
     </div>
   );
 };
+
 export default ProductList;

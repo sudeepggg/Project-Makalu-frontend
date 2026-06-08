@@ -1,25 +1,25 @@
 import { request } from "../../../api/axiosConfig";
 import { endpoints } from "../../../api/endpoints";
 
-export const getAddProducts = (body: any) => {
+export const getAddProducts = (body: FormData) => {
   return request<{ data: any }>({
     url: `${endpoints.products}`,
     method: "POST",
     data: body,
-    headers:{
-      contentType: "multipart/form-data"
-    }
+    // headers:{
+    //   contentType: "multipart/form-data"
+    // }
   });
 };
 
-export const getUpdateProducts = (body: any) => {
+export const getUpdateProducts = (id: string, formData: FormData) => {
   return request<{ data: any }>({
-    url: `${endpoints.products}/${body.id}`,
+    url: `${endpoints.products}/${id}`,
     method: "PUT",
-    data: body,
-    headers:{
-      contentType: "multipart/form-data"
-    }
+    data: formData,
+    // headers: {
+    //   "Content-Type": "multipart/form-data",
+    // }
   });
 };
 
@@ -45,5 +45,13 @@ export const getProducts = (params: any) => {
     url: endpoints.products,
     method: "GET",
     params,
+  });
+};
+
+export const postStockAdjustment = (body: any) => {
+  return request<{ data: any }>({
+    url: `${endpoints.inventory}/adjust`,
+    method: "POST",
+    data: body,
   });
 };

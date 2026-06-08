@@ -143,7 +143,7 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
         onClose={() => setShowForm(false)}
         title="Add Order"
       >
-        <OrderForm onSaved={() => setShowForm(false)} />
+        <OrderForm onSaved={() => setShowForm(false)} orders={orders} />
       </Modal>
     </div>
   );

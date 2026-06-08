@@ -4,6 +4,7 @@ import {
   getDetailProducts,
   getProducts,
   getUpdateProducts,
+  postStockAdjustment,
 } from "../services";
 
 export const useProducts = (params?: any) => {
@@ -42,7 +43,18 @@ export const useAddProducts = () => {
 export const useUpdateProducts = () => {
   const query = useQueryClient();
   return useMutation({
-    mutationFn: (body: any) => getUpdateProducts(body),
+    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+      getUpdateProducts(id, data),
+    onSuccess: () => {
+      query.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+};
+
+export const useStockAdjustment = () => {
+  const query = useQueryClient();
+  return useMutation({
+    mutationFn: (body: any) => postStockAdjustment(body),
     onSuccess: () => {
       query.invalidateQueries({ queryKey: ["products"] });
     },

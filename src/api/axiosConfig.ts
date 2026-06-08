@@ -16,7 +16,7 @@ export const setUnauthorizedHandler = (fn: () => void) => {
 export const axiosInstance = axios.create({
   baseURL: API_BASE,
   timeout: 10_000,
-  headers: { "Content-Type": "application/json" },
+  // headers: { "Content-Type": "application/json" },
 });
 
 axiosInstance.interceptors.request.use(

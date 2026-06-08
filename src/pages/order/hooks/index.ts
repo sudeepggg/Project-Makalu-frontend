@@ -41,9 +41,30 @@ export const useConfirmOrder = (orderId: string) => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (orderType: string) => getConfirmOrder(orderId, orderType),
+    mutationFn: (action: string) => getConfirmOrder(orderId, action),
+    onMutate: async (action) => {
+      await qc.cancelQueries({ queryKey: ["orders-details", orderId] }); 
+      const previous = qc.getQueryData(["orders-details", orderId]);   
+
+      const nextStatus: Record<string, string> = {
+        confirm: "CONFIRMED",
+        dispatch: "DISPATCHED",
+        deliver: "DELIVERED",
+      };
+
+      qc.setQueryData(["orders-details", orderId], (old: any) =>       
+        old ? { ...old, status: nextStatus[action] ?? old.status } : old
+      );
+
+      return { previous };
+    },
+    onError: (_err, _action, ctx) => {
+      if (ctx?.previous) {
+        qc.setQueryData(["orders-details", orderId], ctx.previous);    
+      }
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["orders", orderId] });
+      qc.invalidateQueries({ queryKey: ["orders-details", orderId] }); 
       qc.invalidateQueries({ queryKey: ["orders"] });
     },
   });

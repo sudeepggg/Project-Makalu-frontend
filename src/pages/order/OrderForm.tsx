@@ -5,8 +5,13 @@ import { useCustomers } from "../customers/hooks";
 import { useSaveOrder } from "./hooks";
 import { useProducts } from "../products/hooks";
 
-const OrderForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
+const OrderForm: React.FC<{ onSaved?: () => void; orders?: any[] }> = ({
+  onSaved,
+  orders,
+}) => {
   const { mutateAsync } = useSaveOrder();
+
+  const isEditing = Boolean(orders);
 
   const { data: customerList, isLoading: customerLoading } = useCustomers();
   const { data: productList, isLoading: productsLoading } = useProducts();
@@ -48,7 +53,7 @@ const OrderForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
   return (
     <div className="card p-5 fade-in">
-      <h3 className="font-display text-lg text-primary mb-4">New Order</h3>
+      <h3 className="font-display text-lg text-primary mb-4">{isEditing ? "Edit Order" : "New Order"}</h3>
 
       {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
@@ -197,7 +202,7 @@ const OrderForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           disabled={isSubmitting}
           className="btn-primary w-full justify-center"
         >
-          {isSubmitting ? "Creating…" : "Create Order"}
+          {isEditing ? "Update Order" : "Create Order"}
         </button>
       </form>
     </div>
