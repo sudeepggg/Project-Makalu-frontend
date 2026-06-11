@@ -384,28 +384,30 @@ const ProductForm: React.FC<{
         </div>
 
         {/* Stock Info */}
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="form-label">Opening Stock</label>
-            <Controller
-              name="openingStock"
-              control={control}
-              rules={{ min: { value: 0, message: "Must be 0 or more" } }}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="number"
-                  min={0}
-                  className={`form-field ${errors.openingStock ? "border-red-400" : ""}`}
-                />
+        <div className={`grid ${isEditMode ? "grid-cols-2" : "grid-cols-3"} gap-3`}>
+          {!isEditMode && (
+            <div>
+              <label className="form-label">Opening Stock</label>
+              <Controller
+                name="openingStock"
+                control={control}
+                rules={{ min: { value: 0, message: "Must be 0 or more" } }}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="number"
+                    min={0}
+                    className={`form-field ${errors.openingStock ? "border-red-400" : ""}`}
+                  />
+                )}
+              />
+              {errors.openingStock && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.openingStock.message}
+                </p>
               )}
-            />
-            {errors.openingStock && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.openingStock.message}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
           <div>
             <label className="form-label">Reorder Level</label>

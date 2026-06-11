@@ -17,7 +17,7 @@ import Suppliers from "./pages/suppliers";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Sidebar from "./components/common/Sidebar";
-import Pricing from "./pages/Pricing";
+import Pricing from "./pages/pricing";
 import Register from "./pages/Register";
 import Header from "./components/common/Header";
 
