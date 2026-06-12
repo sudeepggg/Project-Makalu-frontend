@@ -1,26 +1,24 @@
 import React, { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useCustomers } from "../customers/hooks";
-import { useProducts } from "../products/hooks"; 
+import { useProducts } from "../products/hooks";
 import { useSavePricingOverride } from "./hooks";
 
 interface PricingFormValues {
-  productId: string | null;
-  customerId: string | null;
-  basePrice: number | string;
-  costPrice: number | string;
+  productId: string;
+  customerId: string;
+  newBasePrice: number | "";
+  newCostPrice: number | "";
   reason: string;
 }
 
 const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const { mutateAsync: saveOverride } = useSavePricingOverride();
-
   const { data: customerList, isLoading: customerLoading } = useCustomers();
   const { data: productList, isLoading: productsLoading } = useProducts();
 
   const {
     control,
-    register,
     handleSubmit,
     reset,
     setValue,
@@ -31,63 +29,61 @@ const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     defaultValues: {
       productId: "",
       customerId: "",
-      basePrice: "",
-      costPrice: "",
+      newBasePrice: "",
+      newCostPrice: "",
       reason: "",
     },
   });
 
   const selectedProductId = watch("productId");
 
-  // Automatically pre-populate default prices when a product is chosen
   useEffect(() => {
     if (selectedProductId && productList?.data) {
       const selectedProduct = productList.data.find(
-        (product: any) => product.id === selectedProductId
+        (p: any) => p.id === selectedProductId
       );
-
       if (selectedProduct) {
-        setValue("basePrice", selectedProduct.basePrice ?? 0);
-        setValue("costPrice", selectedProduct.costPrice ?? 0);
+        setValue("newBasePrice", selectedProduct.basePrice ?? "");
+        setValue("newCostPrice", selectedProduct.costPrice ?? "");
       }
     } else {
-      setValue("basePrice", "");
-      setValue("costPrice", "");
+      setValue("newBasePrice", "");
+      setValue("newCostPrice", "");
     }
   }, [selectedProductId, productList, setValue]);
 
   const onSubmit = async (values: PricingFormValues) => {
-    // Standardize variables into strict numbers or undefined flags
-    const cleanBasePrice = values.basePrice !== "" && !isNaN(Number(values.basePrice)) 
-      ? Number(values.basePrice) 
-      : undefined;
+    const cleanBasePrice =
+      values.newBasePrice !== "" && !isNaN(Number(values.newBasePrice))
+        ? Number(values.newBasePrice)
+        : undefined;
 
-    const cleanCostPrice = values.costPrice !== "" && !isNaN(Number(values.costPrice)) 
-      ? Number(values.costPrice) 
-      : undefined;
+    const cleanCostPrice =
+      values.newCostPrice !== "" && !isNaN(Number(values.newCostPrice))
+        ? Number(values.newCostPrice)
+        : undefined;
 
-    // Fail-safe check matching backend requirements
     if (cleanBasePrice === undefined && cleanCostPrice === undefined) {
       setError("root", {
-        message: "Must provide at least one valid price rule to override.",
+        message: "Must provide at least one valid price to override.",
       });
       return;
     }
 
     try {
       await saveOverride({
-        customerId: values.customerId!,
-        productId: values.productId!,
-        basePrice: cleanBasePrice,
-        costPrice: cleanCostPrice,
+        customerId: values.customerId,
+        productId: values.productId,
+        newBasePrice: cleanBasePrice,
+        newCostPrice: cleanCostPrice,
         reason: values.reason || undefined,
       });
-
       reset();
       onSaved?.();
     } catch (err: any) {
       setError("root", {
-        message: err?.response?.data?.message || "Failed to save customer override pricing.",
+        message:
+          err?.response?.data?.message ?? "Failed to save price override.",
       });
     }
   };
@@ -103,26 +99,22 @@ const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        {/* Product Dropdown */}
+
+        {/* Product */}
         <div>
           <label className="form-label">Product *</label>
           <Controller
             name="productId"
             control={control}
-            rules={{ required: "Product selection is required" }}
+            rules={{ required: "Product is required" }}
             render={({ field }) => (
-              <select
-                {...field}
-                value={field.value || ""}
-                className="form-field"
-                disabled={productsLoading}
-              >
+              <select {...field} className="form-field" disabled={productsLoading}>
                 <option value="">
                   {productsLoading ? "Loading products..." : "Select Product"}
                 </option>
-                {productList?.data?.map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} {t.sku ? `(${t.sku})` : ""}
+                {productList?.data?.map((p: any) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.sku ? `(${p.sku})` : ""}
                   </option>
                 ))}
               </select>
@@ -133,26 +125,21 @@ const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           )}
         </div>
 
-        {/* Customer Dropdown */}
+        {/* Customer */}
         <div>
-          <label className="form-label">Customer Target *</label>
+          <label className="form-label">Customer *</label>
           <Controller
             name="customerId"
             control={control}
-            rules={{ required: "Customer selection is required" }}
+            rules={{ required: "Customer is required" }}
             render={({ field }) => (
-              <select
-                {...field}
-                value={field.value || ""}
-                className="form-field"
-                disabled={customerLoading}
-              >
+              <select {...field} className="form-field" disabled={customerLoading}>
                 <option value="">
-                  {customerLoading ? "Loading customers..." : "Select Customer to receive this price"}
+                  {customerLoading ? "Loading customers..." : "Select Customer"}
                 </option>
-                {customerList?.data?.map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                {customerList?.data?.map((c: any) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
                   </option>
                 ))}
               </select>
@@ -164,55 +151,73 @@ const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {/* Base Price Numeric Input Field */}
+          {/* Base Price */}
           <div>
-            <label className="form-label">Base Price (NPR) *</label>
-            <input
-              type="number"
-              step="any"
-              className="form-field"
-              placeholder="0.00"
-              min={0}
-              {...register("basePrice", {
-                required: "Base Price is required",
-                min: { value: 0, message: "Price must be 0 or more" },
-                valueAsNumber: true, // Forces data to register straight as number type
-              })}
+            <label className="form-label">Base Price (NPR)</label>
+            <Controller
+              name="newBasePrice"
+              control={control}
+              rules={{ min: { value: 0, message: "Price must be 0 or more" } }}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="number"
+                  step="any"
+                  min={0}
+                  placeholder="0.00"
+                  className="form-field"
+                  onChange={(e) =>
+                    field.onChange(e.target.value === "" ? "" : Number(e.target.value))
+                  }
+                />
+              )}
             />
-            {errors.basePrice && (
-              <p className="text-red-500 text-xs mt-1">{errors.basePrice.message}</p>
+            {errors.newBasePrice && (
+              <p className="text-red-500 text-xs mt-1">{errors.newBasePrice.message}</p>
             )}
           </div>
 
-          {/* Cost Price Numeric Input Field */}
+          {/* Cost Price */}
           <div>
-            <label className="form-label">Cost Price (NPR) *</label>
-            <input
-              type="number"
-              step="any"
-              className="form-field"
-              placeholder="0.00"
-              min={0}
-              {...register("costPrice", {
-                required: "Cost Price is required",
-                min: { value: 0, message: "Cost must be 0 or more" },
-                valueAsNumber: true, // Forces data to register straight as number type
-              })}
+            <label className="form-label">Cost Price (NPR)</label>
+            <Controller
+              name="newCostPrice"
+              control={control}
+              rules={{ min: { value: 0, message: "Cost must be 0 or more" } }}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="number"
+                  step="any"
+                  min={0}
+                  placeholder="0.00"
+                  className="form-field"
+                  onChange={(e) =>
+                    field.onChange(e.target.value === "" ? "" : Number(e.target.value))
+                  }
+                />
+              )}
             />
-            {errors.costPrice && (
-              <p className="text-red-500 text-xs mt-1">{errors.costPrice.message}</p>
+            {errors.newCostPrice && (
+              <p className="text-red-500 text-xs mt-1">{errors.newCostPrice.message}</p>
             )}
           </div>
         </div>
 
-        {/* Reason Field */}
+        {/* Reason */}
         <div>
-          <label className="form-label">Reason for Override Change</label>
-          <input
-            type="text"
-            className="form-field"
-            placeholder="e.g., Seasonal partner custom pricing agreement"
-            {...register("reason")}
+          <label className="form-label">Reason for Override</label>
+          <Controller
+            name="reason"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="text"
+                className="form-field"
+                placeholder="e.g., Seasonal partner custom pricing agreement"
+              />
+            )}
           />
         </div>
 
@@ -221,7 +226,7 @@ const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           disabled={isSubmitting}
           className="btn-primary w-full justify-center mt-4"
         >
-          {isSubmitting ? "Saving Overrides…" : "Assign Custom Price to Customer"}
+          {isSubmitting ? "Saving…" : "Assign Custom Price to Customer"}
         </button>
       </form>
     </div>

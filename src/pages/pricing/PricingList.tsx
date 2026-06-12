@@ -4,24 +4,18 @@ import { usePriceLists } from "./hooks";
 
 interface PricingListProps {
   customerId: string;
-  showAllProducts: boolean;
 }
 
-const PricingList: React.FC<PricingListProps> = ({ customerId, showAllProducts }) => {
-  // Fetch our targeted custom price matrix list for this specific customer
+const PricingList: React.FC<PricingListProps> = ({ customerId }) => {
   const { data: comparisonData, isLoading } = usePriceLists(customerId);
-  
 
   // Extract rows cleanly from our envelope structure safely
-  const records = Array.isArray(comparisonData?.data)
-    ? comparisonData.data
+  const records = Array.isArray(comparisonData)
+    ? comparisonData
     : [];
 
   // Filter the rows on the fly depending on what the user picked in the dropdown
   const filteredRecords = records.filter((item: any) => {
-    if (showAllProducts) return true; // Show all products in the database
-
-    // Otherwise, show only items that actually have custom data saved to them
     return item.overrideBasePrice !== null || item.overrideCostPrice !== null;
   });
 
