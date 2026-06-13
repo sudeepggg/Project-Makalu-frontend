@@ -5,6 +5,7 @@ import {
   getProducts,
   getUpdateProducts,
   postStockAdjustment,
+  toggleProduct,
 } from "../services";
 
 export const useProducts = (params?: any) => {
@@ -60,3 +61,16 @@ export const useStockAdjustment = () => {
     },
   });
 };
+
+export const useToggleProduct = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: any) => toggleProduct(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+};
+
+

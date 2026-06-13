@@ -20,14 +20,17 @@ import Sidebar from "./components/common/Sidebar";
 import Pricing from "./pages/pricing";
 import Register from "./pages/Register";
 import Header from "./components/common/Header";
+import { useState } from "react";
 
 function AppShell() {
+  const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className=" overflow-y-auto p-6">
+    <div className="flex min-h-screen bg-surface-50">
+      <Sidebar collapsed={collapsed} />
+
+      <div className="flex flex-col flex-1 min-w-0">
+        <Header onMenuToggle={() => setCollapsed((prev) => !prev)} />
+        <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>
       </div>

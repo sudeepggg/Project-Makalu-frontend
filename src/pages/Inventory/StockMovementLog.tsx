@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/client';
 import { endpoints } from '../../api/endpoints';
-import LoadingSpinner from '../common/LoadingSpinner';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const typeColor: Record<string, string> = {
   IN: 'text-green-600', OUT: 'text-red-500', ADJUSTMENT: 'text-amber-600',

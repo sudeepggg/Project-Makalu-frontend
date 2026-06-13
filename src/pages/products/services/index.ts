@@ -55,3 +55,11 @@ export const postStockAdjustment = (body: any) => {
     data: body,
   });
 };
+
+export const toggleProduct = (body: { id: string; isActive: boolean }) => {
+  return request<{ data: any }>({
+    url: `${endpoints.products}/${body.id}/toggle-active`,
+    method: "PATCH",
+    data: { isActive: body.isActive },
+  });
+};

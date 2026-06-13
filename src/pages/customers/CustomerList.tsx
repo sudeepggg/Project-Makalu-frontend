@@ -1,26 +1,56 @@
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import CustomerDetail from "./CustomerDetail";
+import { ChevronLeft, ChevronRight, Filter, Plus, X } from "lucide-react";
+import React, { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-import { useCustomers, useToggleCustomer } from "./hooks";
-import CustomerForm from "./CustomerForm";
 import Modal from "../../components/common/Modal";
 import ToggleSwitch from "../../components/common/ToggleSwitch";
+import SearchBar from "../../components/searchBar";
+import { useCustomersTypes } from "../../hooks";
+import { useDebounce } from "../../hooks/useDebounce";
+import CustomerDetail from "./CustomerDetail";
+import CustomerForm from "./CustomerForm";
+import { useCustomers, useToggleCustomer } from "./hooks";
+import InputField from "../../components/UncontrolledFields/InputField";
+
+type Filters = {
+  status: "" | "active" | "inactive";
+  customerTypeId: string;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  status: "",
+  customerTypeId: "",
+};
 
 const CustomerList: React.FC = () => {
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewId, setViewId] = useState<string | null>(null);
+  const [editCustomer, setEditCustomer] = useState<any | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const [cityInput, setCityInput] = useState("");
+
+  const debouncedSearch = useDebounce(search, 500);
+  const debouncedCity = useDebounce(cityInput, 500);
 
   const { mutate: toggleCustomer } = useToggleCustomer();
-  const [showForm, setShowForm] = useState(false);
+  const { data: customerTypes } = useCustomersTypes();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 1000);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const activeFilterCount =
+    Object.values(filters).filter(Boolean).length + (cityInput ? 1 : 0);
+
+  const setFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setCityInput("");
+    setPage(1);
+  };
 
   const {
     data: result,
@@ -29,6 +59,14 @@ const CustomerList: React.FC = () => {
   } = useCustomers({
     search: debouncedSearch || undefined,
     page,
+    isActive:
+      filters.status === "active"
+        ? true
+        : filters.status === "inactive"
+          ? false
+          : undefined,
+    customerTypeId: filters.customerTypeId || undefined,
+    city: debouncedCity || undefined,
   });
 
   const customers = result?.data || [];
@@ -54,6 +92,16 @@ const CustomerList: React.FC = () => {
     );
   };
 
+  const handleEdit = (customer: any) => {
+    setEditCustomer(customer);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditCustomer(null);
+  };
+
   if (isLoading && !debouncedSearch) return <LoadingSpinner />;
   if (isError)
     return (
@@ -62,47 +110,167 @@ const CustomerList: React.FC = () => {
       </div>
     );
 
-  if (selectedId)
-    return (
-      <CustomerDetail id={selectedId} onBack={() => setSelectedId(null)} />
-    );
+  if (viewId)
+    return <CustomerDetail id={viewId} onBack={() => setViewId(null)} />;
 
   return (
     <>
       <div className="card">
+        {/* Toolbar */}
         <div className="p-4 border-b border-surface-200 flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint"
-            />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search by name or email…"
-              className="form-field pl-9 py-1.5 text-sm"
-            />
-          </div>
+          <SearchBar
+            value={search}
+            onClick={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeHolder="Search by name or email…"
+          />
+
+          {/* Filter toggle button */}
+          <button
+            onClick={() => setShowFilters((v) => !v)}
+            className={`btn-secondary py-1.5 px-3 flex items-center gap-1.5 relative ${
+              showFilters ? "bg-surface-100" : ""
+            }`}
+          >
+            <Filter size={14} />
+            <span className="text-sm">Filter</span>
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-semibold">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          <button onClick={() => setShowForm(true)} className="btn-primary">
+            <Plus size={16} /> New Customer
+          </button>
         </div>
+
+        {/* Filter panel */}
+        {showFilters && (
+          <div className="px-4 py-3 border-b border-surface-200 bg-surface-50 flex flex-wrap items-end gap-3">
+            {/* Status */}
+            <div className="flex flex-col gap-1 min-w-[130px]">
+              <label className="text-[11px] font-medium text-ink-faint uppercase tracking-wide">
+                Status
+              </label>
+              <select
+                value={filters.status}
+                onChange={(e) =>
+                  setFilter("status", e.target.value as Filters["status"])
+                }
+                className="form-field py-1.5 text-sm"
+              >
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            {/* Customer Type */}
+            <div className="flex flex-col gap-1 min-w-[160px]">
+              <label className="text-[11px] font-medium text-ink-faint uppercase tracking-wide">
+                Customer Type
+              </label>
+              <select
+                value={filters.customerTypeId}
+                onChange={(e) => setFilter("customerTypeId", e.target.value)}
+                className="form-field py-1.5 text-sm"
+              >
+                <option value="">All types</option>
+                {customerTypes?.map((t: any) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* City — bound to cityInput so typing is instant */}
+            <div className="flex flex-col gap-1 min-w-[140px]">
+              <InputField
+                value={cityInput}
+                label="City"
+                placeholder="e.g. Kathmandu"
+                classname="py-1.5 text-sm"
+                onChange={(e) => {
+                  setCityInput(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-sm text-ink-faint hover:text-red-600 transition-colors pb-1"
+              >
+                <X size={13} /> Clear all
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Active filter pills */}
+        {/* {activeFilterCount > 0 && (
+          <div className="px-4 py-2 flex flex-wrap gap-2 border-b border-surface-200">
+            {filters.status && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700 text-xs font-medium">
+                {filters.status === "active" ? "Active" : "Inactive"}
+                <button
+                  onClick={() => setFilter("status", "")}
+                  className="hover:text-primary-900"
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+            {filters.customerTypeId && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700 text-xs font-medium">
+                {customerTypes?.find(
+                  (t: any) => t.id === filters.customerTypeId,
+                )?.name ?? "Type"}
+                <button
+                  onClick={() => setFilter("customerTypeId", "")}
+                  className="hover:text-primary-900"
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+            {cityInput && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700 text-xs font-medium">
+                {cityInput}
+                <button
+                  onClick={() => setCityInput("")}
+                  className="hover:text-primary-900"
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+          </div>
+        )} */}
+
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="table-base">
-            <thead>
+            <thead className="bg-primary">
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>City</th>
-                <th>Credit Limit</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th className="!text-white">Name</th>
+                <th className="!text-white">Type</th>
+                <th className="!text-white">City</th>
+                <th className="!text-white">Credit Limit</th>
+                <th className="!text-white !text-center">Status</th>
+                <th className="!text-white !text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {customers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-ink-faint py-8">
+                  <td colSpan={6} className="text-center text-ink-faint py-8">
                     No customers found
                   </td>
                 </tr>
@@ -117,7 +285,7 @@ const CustomerList: React.FC = () => {
                     <td className="font-mono text-sm">
                       NPR {c.creditLimit?.toLocaleString()}
                     </td>
-                    <td>
+                    <td className="text-center">
                       <ToggleSwitch
                         checked={c.isActive}
                         disabled={isToggling}
@@ -125,22 +293,18 @@ const CustomerList: React.FC = () => {
                         size="sm"
                       />
                     </td>
-                    <td className="flex items-center gap-2">
+                    <td
+                      align="center"
+                      className="flex items-center justify-center gap-2"
+                    >
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowForm(true);
-                          // setSelectedId(c.id);
-                        }}
+                        onClick={() => handleEdit(c)}
                         className="btn-secondary py-1 px-2"
                       >
-                        EDIT
+                        Edit
                       </button>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedId(c.id);
-                        }}
+                        onClick={() => setViewId(c.id)}
                         className="btn-secondary py-1 px-2"
                       >
                         View Details
@@ -152,6 +316,8 @@ const CustomerList: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
         {pagination && pagination.pages > 1 && (
           <div className="p-4 border-t border-surface-200 flex items-center justify-between text-sm text-ink-muted">
             <span>
@@ -177,17 +343,16 @@ const CustomerList: React.FC = () => {
           </div>
         )}
       </div>
+
       <Modal
         open={showForm}
-        onClose={() => setShowForm(false)}
-        title="Update Customer"
+        onClose={handleCloseForm}
+        title={editCustomer ? "Edit Customer" : "Add Customer"}
       >
-        <CustomerForm
-          customers={customers}
-          onSaved={() => setShowForm(false)}
-        />
+        <CustomerForm customer={editCustomer} onSaved={handleCloseForm} />
       </Modal>
     </>
   );
 };
+
 export default CustomerList;

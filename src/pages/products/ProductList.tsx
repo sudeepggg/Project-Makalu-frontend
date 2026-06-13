@@ -1,17 +1,21 @@
-import { ChevronLeft, ChevronRight, Search, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-import ProductDetail from "./ProductDetail";
-import { useProducts } from "./hooks";
 import Modal from "../../components/common/Modal";
+import ToggleSwitch from "../../components/common/ToggleSwitch";
+import ProductDetail from "./ProductDetail";
 import ProductForm from "./ProductForm";
+import { useProducts, useToggleProduct } from "./hooks";
 
 const ProductList = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null); // ← New state
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+
+  const { mutate: toggleProductMutation } = useToggleProduct();
 
   const { data: result, isLoading } = useProducts({
     page,
@@ -27,7 +31,20 @@ const ProductList = () => {
     totalPages: 1,
   };
 
-  if (isLoading) return <LoadingSpinner />;
+  const handleToggle = (id: string, isActive: boolean) => {
+    setTogglingIds((prev) => new Set(prev).add(id));
+    toggleProductMutation(
+      { id, isActive: !isActive },
+      {
+        onSettled: () =>
+          setTogglingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          }),
+      },
+    );
+  };
 
   if (selectedId)
     return <ProductDetail id={selectedId} onBack={() => setSelectedId(null)} />;
@@ -47,6 +64,7 @@ const ProductList = () => {
     setEditingProduct(null);
   };
 
+  if (isLoading) return <LoadingSpinner />;
   return (
     <div className="card">
       <div className="p-4 border-b border-surface-200 flex items-center justify-between">
@@ -66,7 +84,10 @@ const ProductList = () => {
           />
         </div>
 
-        <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
+        <button
+          onClick={openAddForm}
+          className="btn-primary flex items-center gap-2"
+        >
           <Plus size={18} />
           Add Product
         </button>
@@ -93,46 +114,53 @@ const ProductList = () => {
                 </td>
               </tr>
             )}
-            {products.map((p: any) => (
-              <tr key={p.id} className="hover:bg-surface-100 cursor-pointer group">
-                <td className="font-mono text-xs text-ink-muted">{p.sku}</td>
-                <td className="font-medium">{p.name}</td>
-                <td className="text-ink-muted">{p.category?.name || "—"}</td>
-                <td className="font-mono text-sm">
-                  NPR {p.basePrice?.toLocaleString()}
-                </td>
-                <td className="font-mono text-sm">
-                  NPR {p.costPrice?.toLocaleString()}
-                </td>
-                <td>
-                  <span
-                    className={p.isActive ? "badge-active" : "badge-inactive"}
-                  >
-                    {p.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditForm(p);
-                    }}
-                    className="btn-secondary py-1 px-3 text-xs"
-                  >
-                    EDIT
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedId(p.id);
-                    }}
-                    className="btn-secondary py-1 px-3 text-xs"
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {products.map((p: any) => {
+              const isToggling = togglingIds.has(p.id);
+              return (
+                <tr
+                  key={p.id}
+                  className="hover:bg-surface-100 cursor-pointer group"
+                >
+                  <td className="font-mono text-xs text-ink-muted">{p.sku}</td>
+                  <td className="font-medium">{p.name}</td>
+                  <td className="text-ink-muted">{p.category?.name || "—"}</td>
+                  <td className="font-mono text-sm">
+                    NPR {p.basePrice?.toLocaleString()}
+                  </td>
+                  <td className="font-mono text-sm">
+                    NPR {p.costPrice?.toLocaleString()}
+                  </td>
+                  <td>
+                    <ToggleSwitch
+                      checked={p.isActive}
+                      disabled={isToggling}
+                      onChange={() => handleToggle(p.id, !p.isActive)}
+                      size="sm"
+                    />
+                  </td>
+                  <td className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditForm(p);
+                      }}
+                      className="btn-secondary py-1 px-3 text-xs"
+                    >
+                      EDIT
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedId(p.id);
+                      }}
+                      className="btn-secondary py-1 px-3 text-xs"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -168,10 +196,7 @@ const ProductList = () => {
         onClose={handleFormClose}
         title={editingProduct ? "Edit Product" : "Add New Product"}
       >
-        <ProductForm
-          product={editingProduct}      
-          onSaved={handleFormClose}
-        />
+        <ProductForm product={editingProduct} onSaved={handleFormClose} />
       </Modal>
     </div>
   );

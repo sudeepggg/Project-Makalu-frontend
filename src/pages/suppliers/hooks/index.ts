@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAddSupplier, getSupplierDetails, getSuppliers } from "../service";
+import {
+  getAddSupplier,
+  getSupplierDetails,
+  getSuppliers,
+  getToggleSupplier,
+} from "../service";
 
 export const useSuppliers = (options?: any) => {
   return useQuery({
@@ -32,6 +37,16 @@ export const useAddSupplier = () => {
   const query = useQueryClient();
   return useMutation({
     mutationFn: (body: any) => getAddSupplier(body),
+    onSuccess: () => {
+      query.invalidateQueries({ queryKey: ["suppliers"] });
+    },
+  });
+};
+
+export const useToggleSupplier = () => {
+  const query = useQueryClient();
+  return useMutation({
+    mutationFn: (body: any) => getToggleSupplier(body),
     onSuccess: () => {
       query.invalidateQueries({ queryKey: ["suppliers"] });
     },

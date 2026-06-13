@@ -1,14 +1,18 @@
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-import { useSuppliers } from "./hooks";
+import { useSuppliers, useToggleSupplier } from "./hooks";
 import SupplierDetail from "./SuppliersDetail";
+import ToggleSwitch from "../../components/common/ToggleSwitch";
 
 const SuppliersList: React.FC = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+
+  const { mutate: toggleSupplier } = useToggleSupplier();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 1000);
@@ -30,6 +34,21 @@ const SuppliersList: React.FC = () => {
     limit: 20,
     total: 0,
     totalPages: 1,
+  };
+
+  const handleToggle = (id: string, isActive: boolean) => {
+    setTogglingIds((prev) => new Set(prev).add(id));
+    toggleSupplier(
+      { id, isActive: !isActive },
+      {
+        onSettled: () =>
+          setTogglingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          }),
+      },
+    );
   };
 
   if (isLoading && !debouncedSearch) return <LoadingSpinner />;
@@ -73,6 +92,7 @@ const SuppliersList: React.FC = () => {
               <th>City</th>
               <th>Phone</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -83,25 +103,47 @@ const SuppliersList: React.FC = () => {
                 </td>
               </tr>
             )}
-            {suppliers.map((s: any) => (
-              <tr
-                key={s.id}
-                onClick={() => setSelectedId(s.id)}
-                className="cursor-pointer"
-              >
-                <td className="font-medium">{s.name}</td>
-                <td className="text-ink-muted">{s.contactPerson || "—"}</td>
-                <td className="text-ink-muted">{s.city || "—"}</td>
-                <td className="text-ink-muted">{s.phone || "—"}</td>
-                <td>
-                  <span
-                    className={s.isActive ? "badge-active" : "badge-inactive"}
-                  >
-                    {s.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {suppliers.map((s: any) => {
+              const isToggling = togglingIds.has(s.id);
+
+              return (
+                <tr key={s.id}>
+                  <td className="font-medium">{s.name}</td>
+                  <td className="text-ink-muted">{s.contactPerson || "—"}</td>
+                  <td className="text-ink-muted">{s.city || "—"}</td>
+                  <td className="text-ink-muted">{s.phone || "—"}</td>
+                  <td>
+                    <ToggleSwitch
+                      checked={s.isActive}
+                      disabled={isToggling}
+                      onChange={() => handleToggle(s.id, s.isActive)}
+                      size="sm"
+                    />
+                  </td>
+                  <td className="flex items-center gap-2">
+                    {/* <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowForm(true);
+                        // setSelectedId(c.id);
+                      }}
+                      className="btn-secondary py-1 px-2"
+                    >
+                      EDIT
+                    </button> */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedId(s.id);
+                      }}
+                      className="btn-secondary py-1 px-2"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

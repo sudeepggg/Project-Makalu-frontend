@@ -89,9 +89,7 @@ const PricingForm: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   };
 
   return (
-    <div className="card p-5">
-      <h3 className="font-display text-lg text-primary mb-4">Price Override</h3>
-
+    <div className="">
       {errors.root && (
         <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           {errors.root.message}

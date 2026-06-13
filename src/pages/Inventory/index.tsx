@@ -1,8 +1,7 @@
 import Card from "../../components/common/Card";
-import InventoryList from "../../components/inventory/InventoryList";
-import ReorderAlerts from "../../components/inventory/ReorderAlerts";
-import StockMovementLog from "../../components/inventory/StockMovementLog";
-
+import InventoryList from "./InventoryList";
+import ReorderAlerts from "./ReorderAlerts";
+import StockMovementLog from "./StockMovementLog";
 
 const cardsData = [
   {

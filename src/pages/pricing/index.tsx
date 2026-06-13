@@ -3,6 +3,7 @@ import PricingForm from "./PricingForm";
 import PricingList from "./PricingList";
 import { useCustomers } from "../customers/hooks";
 import PricingHistory from "./PricingHistory";
+import Modal from "../../components/common/Modal";
 
 const Pricing: React.FC = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
@@ -92,29 +93,13 @@ const Pricing: React.FC = () => {
       </div>
 
       {/* Backdrop Modal Overlay Container for the Form */}
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full relative overflow-hidden border border-surface-200 animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Close Button Header */}
-            <div className="flex justify-between items-center px-5 py-4 border-b border-surface-200 bg-surface-50">
-              <span className="text-sm font-semibold text-ink-muted uppercase tracking-wider">
-                New Price Adjustment Rule
-              </span>
-              <button
-                onClick={() => setIsFormOpen(false)}
-                className="text-ink-faint hover:text-ink text-lg font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Embedded Form Body Section */}
-            <div className="p-5 max-h-[80vh] overflow-y-auto">
-              <PricingForm onSaved={handleSaved} />
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title="New Price Adjustment Rule"
+      >
+        <PricingForm onSaved={handleSaved} />
+      </Modal>
     </div>
   );
 };

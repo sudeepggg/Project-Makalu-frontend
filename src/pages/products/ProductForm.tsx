@@ -20,10 +20,14 @@ type ProductFormValues = {
   supplierId: string;
 };
 
+const MAX_IMAGE_SIZE_MB = 5;
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 const ProductForm: React.FC<{
   onSaved?: () => void;
-  product?: any; // Single product for edit mode
+  product?: any;
 }> = ({ onSaved, product }) => {
+  const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
   const qc = useQueryClient();
   const { data: unitOfMeasures } = useUnitOfMeasure();
   const { data: categories } = useCategories();
@@ -38,6 +42,8 @@ const ProductForm: React.FC<{
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [existingImageUrl, setExistingImageUrl] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
 
   const {
     control,
@@ -61,7 +67,6 @@ const ProductForm: React.FC<{
     },
   });
 
-  // Populate form in edit mode
   useEffect(() => {
     if (product && isEditMode) {
       reset({
@@ -78,9 +83,10 @@ const ProductForm: React.FC<{
         supplierId: product.supplierId || "",
       });
 
-      if (product.image) {
-        setExistingImageUrl(product.image);
-        setImagePreview(product.image);
+      if (product.imageUrl) {
+        const fullUrl = `${BASE_URL}${product.imageUrl}`;
+        setExistingImageUrl(fullUrl);
+        setImagePreview(fullUrl);
       }
     }
   }, [product, reset, isEditMode]);
@@ -88,22 +94,35 @@ const ProductForm: React.FC<{
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setImageError("");
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setImageError("Only JPG, PNG, and WebP images are allowed.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      setImageError(`Image must be under ${MAX_IMAGE_SIZE_MB}MB.`);
+      e.target.value = "";
+      return;
+    }
+
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
 
   const removeImage = () => {
     setImageFile(null);
-    if (isEditMode && existingImageUrl) {
-      setImagePreview(existingImageUrl);
-    } else {
-      setImagePreview("");
-      setExistingImageUrl("");
-    }
+    setImageError("");
+    setImagePreview("");
+    setExistingImageUrl("");
   };
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
+      setImageError("");
       const formData = new FormData();
 
       formData.append("sku", data.sku);
@@ -122,21 +141,24 @@ const ProductForm: React.FC<{
       }
 
       if (imageFile) {
-        formData.append("image", imageFile);
+        formData.append("imageUrl", imageFile);
+      }
+
+      if (removeExistingImage && !imageFile) {
+        formData.append("imageUrl", "true");
       }
 
       if (isEditMode && product?.id) {
-        const result = await updateProduct({ id: product.id, data: formData });
-        console.log("===>", result);
+        await updateProduct({ id: product.id, data: formData });
       } else {
         await addProduct(formData);
       }
 
-      // Reset form
       reset();
       setImageFile(null);
       setImagePreview("");
       setExistingImageUrl("");
+      setRemoveExistingImage(false);
       qc.invalidateQueries({ queryKey: ["products"] });
       onSaved?.();
     } catch (err: any) {
@@ -177,9 +199,17 @@ const ProductForm: React.FC<{
           ) : (
             <label
               htmlFor="productImage"
-              className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors text-secondary"
+              className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors text-secondary
+                ${
+                  imageError
+                    ? "border-red-400 bg-red-50 hover:border-red-500"
+                    : "border-border hover:border-primary hover:bg-primary/5"
+                }`}
             >
-              <ImagePlus size={24} className="mb-2 opacity-50" />
+              <ImagePlus
+                size={24}
+                className={`mb-2 opacity-50 ${imageError ? "text-red-400" : ""}`}
+              />
               <span className="text-sm">Click to upload image</span>
               <span className="text-xs opacity-60 mt-1">
                 JPG, PNG, WebP — max 5MB
@@ -192,6 +222,11 @@ const ProductForm: React.FC<{
                 onChange={handleImageChange}
               />
             </label>
+          )}
+          {imageError && (
+            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+              <span>⚠</span> {imageError}
+            </p>
           )}
         </div>
 
@@ -384,7 +419,9 @@ const ProductForm: React.FC<{
         </div>
 
         {/* Stock Info */}
-        <div className={`grid ${isEditMode ? "grid-cols-2" : "grid-cols-3"} gap-3`}>
+        <div
+          className={`grid ${isEditMode ? "grid-cols-2" : "grid-cols-3"} gap-3`}
+        >
           {!isEditMode && (
             <div>
               <label className="form-label">Opening Stock</label>

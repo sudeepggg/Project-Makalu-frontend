@@ -11,7 +11,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="page-header">
+      {/* <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <p className="text-sm text-ink-faint hidden sm:block">
           {new Date().toLocaleDateString("en-US", {
@@ -21,7 +21,7 @@ const Dashboard: React.FC = () => {
             day: "numeric",
           })}
         </p>
-      </div>
+      </div> */}
 
       {isLoading ? (
         <LoadingSpinner />
