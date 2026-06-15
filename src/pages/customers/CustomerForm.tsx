@@ -1,25 +1,11 @@
 import { FormProvider, useForm } from "react-hook-form";
 import InputField from "../../components/ContolledFields/InputField";
-import SelectField from "../../components/ContolledFields/SeleectField";
+import SelectField from "../../components/ContolledFields/SelectField";
 import { useCustomersTypes } from "../../hooks";
 import { useAddCustomers, useUpdateCustomers } from "./hooks";
+import type { FormProps, FormValues } from "./types";
 
-type FormValues = {
-  name: string;
-  customerTypeId: string;
-  email: string;
-  phone: string;
-  alternatePhone: string;
-  city: string;
-  creditLimit: number;
-};
-
-type Props = {
-  onSaved?: () => void;
-  customer?: any | null;
-};
-
-const CustomerForm = ({ customer, onSaved }: Props) => {
+const CustomerForm = ({ customer, onSaved }: FormProps) => {
   const { mutateAsync: addCustomer } = useAddCustomers();
   const { mutateAsync: updateCustomer } = useUpdateCustomers();
   const { data: customerTypes, isLoading: typesLoading } = useCustomersTypes();

@@ -1,27 +1,26 @@
 import { ChevronLeft, ChevronRight, Filter, Plus, X } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import Modal from "../../components/common/Modal";
 import ToggleSwitch from "../../components/common/ToggleSwitch";
 import SearchBar from "../../components/searchBar";
+import InputField from "../../components/UncontrolledFields/InputField";
+import SelectField from "../../components/UncontrolledFields/SelectField";
 import { useCustomersTypes } from "../../hooks";
 import { useDebounce } from "../../hooks/useDebounce";
 import CustomerDetail from "./CustomerDetail";
 import CustomerForm from "./CustomerForm";
 import { useCustomers, useToggleCustomer } from "./hooks";
-import InputField from "../../components/UncontrolledFields/InputField";
+import type { Filters } from "./types";
 
-type Filters = {
-  status: "" | "active" | "inactive";
-  customerTypeId: string;
-};
+
 
 const DEFAULT_FILTERS: Filters = {
   status: "",
   customerTypeId: "",
 };
 
-const CustomerList: React.FC = () => {
+const CustomerList = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [viewId, setViewId] = useState<string | null>(null);
@@ -115,9 +114,9 @@ const CustomerList: React.FC = () => {
 
   return (
     <>
-      <div className="card">
+      <div className="">
         {/* Toolbar */}
-        <div className="p-4 border-b border-surface-200 flex items-center gap-3">
+        <div className="mb-4 border-b border-surface-200 flex items-center gap-3">
           <SearchBar
             value={search}
             onClick={(e) => {
@@ -152,40 +151,35 @@ const CustomerList: React.FC = () => {
         {showFilters && (
           <div className="px-4 py-3 border-b border-surface-200 bg-surface-50 flex flex-wrap items-end gap-3">
             {/* Status */}
-            <div className="flex flex-col gap-1 min-w-[130px]">
-              <label className="text-[11px] font-medium text-ink-faint uppercase tracking-wide">
-                Status
-              </label>
-              <select
-                value={filters.status}
-                onChange={(e) =>
-                  setFilter("status", e.target.value as Filters["status"])
-                }
-                className="form-field py-1.5 text-sm"
-              >
-                <option value="">All</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
+            <SelectField
+              label="Status"
+              value={filters.status}
+              onChange={(e) =>
+                setFilter("status", e.target.value as Filters["status"])
+              }
+              className="py-1.5 text-sm"
+              options={[
+                { label: "All", value: "" },
+                { label: "Active", value: "active" },
+                { label: "Inactive", value: "inactive" },
+              ]}
+            />
 
             {/* Customer Type */}
             <div className="flex flex-col gap-1 min-w-[160px]">
-              <label className="text-[11px] font-medium text-ink-faint uppercase tracking-wide">
-                Customer Type
-              </label>
-              <select
+              <SelectField
+                label="Customer Type"
                 value={filters.customerTypeId}
                 onChange={(e) => setFilter("customerTypeId", e.target.value)}
-                className="form-field py-1.5 text-sm"
-              >
-                <option value="">All types</option>
-                {customerTypes?.map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
+                className="py-1.5 text-sm"
+                placeholder="All types"
+                options={
+                  customerTypes?.map((t: any) => ({
+                    label: t.name,
+                    value: t.id,
+                  })) ?? []
+                }
+              />
             </div>
 
             {/* City — bound to cityInput so typing is instant */}
@@ -256,8 +250,8 @@ const CustomerList: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="table-base">
-            <thead className="bg-primary">
+          <table className="table-base bg-white rounded-md">
+            <thead className="bg-primary-600">
               <tr>
                 <th className="!text-white">Name</th>
                 <th className="!text-white">Type</th>

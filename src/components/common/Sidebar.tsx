@@ -57,6 +57,13 @@ const nav = [
     section: "Management",
   },
   {
+    to: "/payment",
+    label: "Payment",
+    Icon: Tag,
+    roles: ["ADMIN"],
+    section: "Management",
+  },
+  {
     to: "/suppliers",
     label: "Suppliers",
     Icon: Truck,
@@ -197,7 +204,9 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
               ${collapsed ? "w-0 opacity-0 overflow-hidden" : "opacity-100"}
             `}
           >
-            <p className="text-xs font-semibold text-ink truncate">{fullName}</p>
+            <p className="text-xs font-semibold text-ink truncate">
+              {fullName}
+            </p>
             <p className="text-[10px] text-ink-faint">{userRole}</p>
           </div>
 

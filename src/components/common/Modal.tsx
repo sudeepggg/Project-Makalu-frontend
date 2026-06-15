@@ -31,8 +31,10 @@ const Modal: React.FC<ModalProps> = ({
       className="fixed top-0 left-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50  w-full h-full !m-0"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className={`card w-full ${w} shadow-modal`}>
-        <div className="flex items-center justify-between p-5 border-b border-surface-200">
+      <div
+        className={`card w-full ${w} shadow-modal max-h-[90vh] flex flex-col`}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-surface-200 shrink-0">
           <h3 className="font-display text-xl text-primary">{title}</h3>
           <button
             onClick={onClose}
@@ -41,7 +43,7 @@ const Modal: React.FC<ModalProps> = ({
             <X size={18} />
           </button>
         </div>
-        <div className="p-5 h-[600px] overflow-y-auto">{children}</div>
+        <div className="p-5 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

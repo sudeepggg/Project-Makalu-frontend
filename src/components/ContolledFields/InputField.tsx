@@ -2,13 +2,15 @@ import { Controller, useFormContext } from "react-hook-form";
 
 interface Props {
   name: string;
-  label: string;
+  label?: string;
   value?: string;
-  placeholder: string;
+  placeholder?: string;
   classname?: string;
   rules?: object;
   type?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  multiline?: boolean;
+  rows?: number;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 const InputField = ({
@@ -19,6 +21,8 @@ const InputField = ({
   classname,
   rules,
   type = "text",
+  multiline,
+  rows = 3,
   onChange,
 }: Props) => {
   const {
@@ -33,21 +37,35 @@ const InputField = ({
         name={name}
         control={control}
         rules={rules}
-        render={({ field }) => (
-          <input
-            {...field}
-            type={type}
-            defaultValue={value}
-            className={`form-field ${classname}`}
-            placeholder={placeholder}
-            onChange={(e) => {
-              const value =
-                type === "number" ? e.target.valueAsNumber : e.target.value;
-              field.onChange(value);
-              onChange?.(e);
-            }}
-          />
-        )}
+        render={({ field }) =>
+          multiline ? (
+            <textarea
+              {...field}
+              defaultValue={value}
+              rows={rows}
+              className={`form-field resize-none ${classname}`}
+              placeholder={placeholder}
+              onChange={(e) => {
+                field.onChange(e.target.value);
+                onChange?.(e);
+              }}
+            />
+          ) : (
+            <input
+              {...field}
+              type={type}
+              defaultValue={value}
+              className={`form-field ${classname}`}
+              placeholder={placeholder}
+              onChange={(e) => {
+                const val =
+                  type === "number" ? e.target.valueAsNumber : e.target.value;
+                field.onChange(val);
+                onChange?.(e);
+              }}
+            />
+          )
+        }
       />
       {errors[name] && (
         <span className="error">{errors[name]?.message as string}</span>

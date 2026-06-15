@@ -21,6 +21,7 @@ import Pricing from "./pages/pricing";
 import Register from "./pages/Register";
 import Header from "./components/common/Header";
 import { useState } from "react";
+import { Payment } from "./pages/payment";
 
 function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
@@ -60,6 +61,7 @@ const router = createBrowserRouter([
             element: <RoleRoute allowedRoles={["ADMIN"]} />,
             children: [
               { path: "/inventory", element: <Inventory /> },
+              { path: "/payment", element: <Payment /> },
               { path: "/products", element: <Products /> },
               { path: "/suppliers", element: <Suppliers /> },
               { path: "/reports", element: <Reports /> },

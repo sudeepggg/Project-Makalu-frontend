@@ -30,6 +30,13 @@ export const getDetailProducts = (body: any) => {
   });
 };
 
+export const getCategryProducts = () => {
+  return request<{ data: any }>({
+    url: `${endpoints.products}/categories`,
+    method: "GET",
+  });
+};
+
 export const getProducts = (params: any) => {
   return request<{
     data: {

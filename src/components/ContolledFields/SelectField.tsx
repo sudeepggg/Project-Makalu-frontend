@@ -7,7 +7,7 @@ interface SelectOption {
 
 interface Props {
   name: string;
-  label: string;
+  label?: string;
   options: SelectOption[];
   placeholder?: string;
   rules?: object;
@@ -31,6 +31,7 @@ const SelectField = ({
 
   return (
     <div>
+      
       <label className="form-label">{label}</label>
       <Controller
         name={name}

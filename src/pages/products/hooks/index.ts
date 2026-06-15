@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getAddProducts,
+  getCategryProducts,
   getDetailProducts,
   getProducts,
   getUpdateProducts,
@@ -26,6 +27,16 @@ export const useDetailProducts = (params?: any) => {
     queryKey: ["product-detail", params],
     queryFn: async () => {
       const res = await getDetailProducts(params);
+      return res.data;
+    },
+  });
+};
+
+export const useCategoryProducts = () => {
+  return useQuery({
+    queryKey: ["product-category"],
+    queryFn: async () => {
+      const res = await getCategryProducts();
       return res.data;
     },
   });
@@ -72,5 +83,3 @@ export const useToggleProduct = () => {
     },
   });
 };
-
-
