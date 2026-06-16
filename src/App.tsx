@@ -21,7 +21,7 @@ import Pricing from "./pages/pricing";
 import Register from "./pages/Register";
 import Header from "./components/common/Header";
 import { useState } from "react";
-import { Payment } from "./pages/payment";
+import Payment from "./pages/payment";
 
 function AppShell() {
   const [collapsed, setCollapsed] = useState(false);

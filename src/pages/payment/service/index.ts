@@ -1,9 +1,44 @@
 import { request } from "../../../api/axiosConfig";
 import { endpoints } from "../../../api/endpoints";
 
-export const getPaymentList = () => {
-  return request<{ data: any }>({
-    url: `${endpoints.payments}`,
+export const getPaymentList = (page = 1, limit = 20, filters?: any) => {
+  return request<any>({
+    url: endpoints.payments,
+    method: "GET",
+    params: {
+      page,
+      limit,
+      ...filters,
+    },
+  });
+};
+
+export const getPaymentById = (id: string) => {
+  return request<any>({
+    url: `${endpoints.payments}/${id}`,
+    method: "GET",
+  });
+};
+
+export const createPaymentRequest = (data: {
+  customerId: string;
+  orderId: string;
+  amount: number;
+  method: string;
+  reference?: string;
+  paymentDate: string;
+  notes?: string;
+}) => {
+  return request<any>({
+    url: endpoints.payments,
+    method: "POST",
+    data,
+  });
+};
+
+export const getCustomerActiveOrdersRequest = (customerId: string) => {
+  return request<Array<{ id: string; orderNumber: string; total: number; outstanding: number }>>({
+    url: `${endpoints.customers}/${customerId}/active-orders`,
     method: "GET",
   });
 };

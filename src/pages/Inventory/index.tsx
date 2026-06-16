@@ -32,9 +32,7 @@ const cardsData = [
 
 const Inventory = () => (
   <div className="space-y-6 fade-in">
-    <div className="page-header">
-      <h1 className="page-title">Inventory Management</h1>
-    </div>
+   
     <div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,4fr))] gap-2.5 mb-4">
         {cardsData.map((card, idx) => {

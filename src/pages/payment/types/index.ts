@@ -1,8 +1,8 @@
 export const PAYMENT_STATUSES = {
-  PENDING: 'PENDING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  REFUNDED: 'REFUNDED',
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  REFUNDED: "REFUNDED",
 } as const;
 
 export type PaymentStatus = keyof typeof PAYMENT_STATUSES;
@@ -36,7 +36,7 @@ export interface Payment {
 }
 
 export interface PaymentListResponse {
-  data: Payment[];
+  data: { data: Payment[] };
   pagination: {
     page: number;
     limit: number;
@@ -51,9 +51,9 @@ export interface PaymentFilters {
 }
 
 export const PAYMENT_METHODS = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'BANK_TRANSFER', label: 'Bank transfer' },
-  { value: 'CARD', label: 'Card' },
-  { value: 'CHEQUE', label: 'Cheque' },
-  { value: 'OTHER', label: 'Other' },
+  { value: "CASH", label: "Cash" },
+  { value: "BANK_TRANSFER", label: "Bank transfer" },
+  { value: "CARD", label: "Card" },
+  { value: "CHEQUE", label: "Cheque" },
+  { value: "OTHER", label: "Other" },
 ];
