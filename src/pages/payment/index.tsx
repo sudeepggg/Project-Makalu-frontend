@@ -64,7 +64,7 @@ const Payment = () => {
   const pagination = res?.pagination ?? { page: 1, limit: 20, total: 0, pages: 1 };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Payments</h1>
