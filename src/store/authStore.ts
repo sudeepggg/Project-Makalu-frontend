@@ -1,39 +1,41 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-interface AuthState {
-  token: string | null;
-  user: {
-    id: string;
-    username?: string;
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    roles?: string[];
-  } | null;
-  setAuth: (user: AuthState['user'], token: string | null) => void;
-  clearAuth: () => void;
+interface User {
+  id:        string;
+  username:  string;
+  email:     string;
+  firstName?: string;
+  lastName?:  string;
+  roles:     string[];
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  token: localStorage.getItem('authToken'),
-  user: (() => {
-    try {
-      const u = localStorage.getItem('user');
-      return u ? JSON.parse(u) : null;
-    } catch {
-      return null;
+interface AuthState {
+  user:     User | null;
+  token:    string | null;
+  isLoading: boolean;
+  setAuth:   (user: User, token: string) => void;
+  clearAuth: () => void;
+  setLoading:(v: boolean) => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user:      null,
+      token:     null,
+      isLoading: false,
+
+      setAuth: (user, token) => set({ user, token }),
+      clearAuth: ()          => set({ user: null, token: null }),
+      setLoading: (v)        => set({ isLoading: v }),
+    }),
+    {
+      name:    "auth-storage",      
+      partialize: (s) => ({   
+        user:  s.user,
+        token: s.token,
+      }),
     }
-  })(),
-  setAuth: (user, token) => {
-    if (token) localStorage.setItem('authToken', token);
-    else localStorage.removeItem('authToken');
-    if (user) localStorage.setItem('user', JSON.stringify(user));
-    else localStorage.removeItem('user');
-    set({ user, token });
-  },
-  clearAuth: () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    set({ user: null, token: null });
-  },
-}));
+  )
+);
