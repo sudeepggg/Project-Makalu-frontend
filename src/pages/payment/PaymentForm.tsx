@@ -57,6 +57,7 @@ export function RecordPaymentForm({ onSuccess }: Props) {
 
   useEffect(() => {
     setValue("orderId", "");
+    setValue("customerId", "");
     setSelectedOrderDetails(null);
   }, [watchedCustomerId, setValue]);
 
@@ -64,7 +65,10 @@ export function RecordPaymentForm({ onSuccess }: Props) {
     if (watchedOrderId && activeOrders) {
       const match = activeOrders.find((o) => o.id === watchedOrderId);
       if (match) {
-        setSelectedOrderDetails({ total: match.total, outstanding: match.outstanding });
+        setSelectedOrderDetails({
+          total: match.total,
+          outstanding: match.outstanding,
+        });
       }
     } else {
       setSelectedOrderDetails(null);
@@ -72,7 +76,7 @@ export function RecordPaymentForm({ onSuccess }: Props) {
   }, [watchedOrderId, activeOrders]);
 
   const customerOptions =
-    customers?.data?.map((c) => ({ value: c.id, label: c.name })) ?? [];
+    customers?.data?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
   const orderOptions =
     activeOrders?.map((o) => ({
@@ -82,10 +86,16 @@ export function RecordPaymentForm({ onSuccess }: Props) {
 
   const onSubmit = async (data: PaymentFormValues) => {
     if (data.amount <= 0) {
-      setError("amount", { type: "manual", message: "Amount must be greater than 0" });
+      setError("amount", {
+        type: "manual",
+        message: "Amount must be greater than 0",
+      });
       return;
     }
-    if (selectedOrderDetails && data.amount > selectedOrderDetails.outstanding) {
+    if (
+      selectedOrderDetails &&
+      data.amount > selectedOrderDetails.outstanding
+    ) {
       setError("amount", {
         type: "manual",
         message: `Overpayment: exceeds outstanding balance ($${selectedOrderDetails.outstanding.toFixed(2)})`,
@@ -106,7 +116,6 @@ export function RecordPaymentForm({ onSuccess }: Props) {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-
         {/* Root error */}
         {errors.root && (
           <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
@@ -129,7 +138,11 @@ export function RecordPaymentForm({ onSuccess }: Props) {
           name="orderId"
           label="Active Sales Order *"
           options={orderOptions}
-          placeholder={watchedCustomerId ? "Select confirmed order..." : "Choose a customer first"}
+          placeholder={
+            watchedCustomerId
+              ? "Select confirmed order..."
+              : "Choose a customer first"
+          }
           isLoading={loadingOrders}
           rules={{ required: "Order selection is required" }}
         />
@@ -163,7 +176,10 @@ export function RecordPaymentForm({ onSuccess }: Props) {
             step="0.01"
             placeholder="0.00"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            {...register("amount", { required: "Amount is required", valueAsNumber: true })}
+            {...register("amount", {
+              required: "Amount is required",
+              valueAsNumber: true,
+            })}
           />
           {errors.amount && (
             <p className="text-xs text-red-500">{errors.amount.message}</p>
@@ -173,7 +189,10 @@ export function RecordPaymentForm({ onSuccess }: Props) {
         {/* Method + Date */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700" htmlFor="method">
+            <label
+              className="text-sm font-medium text-gray-700"
+              htmlFor="method"
+            >
               Payment Method *
             </label>
             <select
@@ -182,13 +201,18 @@ export function RecordPaymentForm({ onSuccess }: Props) {
               {...register("method")}
             >
               {PAYMENT_METHODS.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700" htmlFor="paymentDate">
+            <label
+              className="text-sm font-medium text-gray-700"
+              htmlFor="paymentDate"
+            >
               Payment Date *
             </label>
             <input
@@ -202,7 +226,10 @@ export function RecordPaymentForm({ onSuccess }: Props) {
 
         {/* Reference */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700" htmlFor="reference">
+          <label
+            className="text-sm font-medium text-gray-700"
+            htmlFor="reference"
+          >
             Reference / Transaction ID
           </label>
           <input

@@ -11,25 +11,24 @@ import SelectField from "../../components/ContolledFields/SelectField";
 import PaymentDetail from "./PaymentDetail";
 import { RecordPaymentForm } from "./PaymentForm";
 import Modal from "./Modal";
-
+import { VerifyPaymentModal } from "./VerifyPaymentModal";
 
 const STATUS_OPTIONS = Object.values(PAYMENT_STATUSES).map((s) => ({
   value: s,
   label: s,
 }));
 
-const STATUS_COLORS: Record<string, string> = {
-  paid: "bg-green-100 text-green-700",
-  pending: "bg-yellow-100 text-yellow-700",
-  failed: "bg-red-100 text-red-700",
-  cancelled: "bg-gray-100 text-gray-600",
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  UNPAID: "bg-yellow-50 text-yellow-700",
+  PARTIALLY_PAID: "bg-blue-50 text-blue-700",
+  PAID: "bg-green-50 text-green-700",
 };
-
 const Payment = () => {
   const [page, setPage] = useState(1);
   const limit = 20;
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [viewPaymentId, setViewPaymentId] = useState<string | null>(null);
+  const [verifyPayment, setVerifyPayment] = useState<any | null>(null);
 
   const filterFormMethods = useForm<PaymentFilters>({
     defaultValues: { status: undefined, customerId: undefined },
@@ -44,7 +43,11 @@ const Payment = () => {
     customerId: watchedCustomerId || undefined,
   };
 
-  const { data: paymentResponse, isLoading, isError } = usePaymentList({
+  const {
+    data: paymentResponse,
+    isLoading,
+    isError,
+  } = usePaymentList({
     page,
     limit,
     filters: currentFilters,
@@ -61,7 +64,12 @@ const Payment = () => {
 
   const res = paymentResponse as PaymentListResponse | undefined;
   const payments = res?.data.data ?? [];
-  const pagination = res?.pagination ?? { page: 1, limit: 20, total: 0, pages: 1 };
+  const pagination = res?.pagination ?? {
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 1,
+  };
 
   return (
     <div className="p-6 mx-auto">
@@ -100,10 +108,14 @@ const Payment = () => {
 
       {/* States */}
       {isLoading && (
-        <p className="text-gray-400 text-sm py-8 text-center">Loading payments…</p>
+        <p className="text-gray-400 text-sm py-8 text-center">
+          Loading payments…
+        </p>
       )}
       {isError && (
-        <p className="text-red-500 text-sm py-8 text-center">Could not load payments.</p>
+        <p className="text-red-500 text-sm py-8 text-center">
+          Could not load payments.
+        </p>
       )}
 
       {/* Table */}
@@ -113,13 +125,18 @@ const Payment = () => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
                 <tr>
-                  {["Date", "Customer", "Order", "Amount", "Method", "Status", ""].map(
-                    (h) => (
-                      <th key={h} className="px-4 py-3 text-left font-medium">
-                        {h}
-                      </th>
-                    )
-                  )}
+                  {[
+                    "Order",
+                    "Date",
+                    "Customer",
+                    "Amount",
+                    "Payment Status",
+                    "Action",
+                  ].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left font-medium">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
@@ -130,43 +147,55 @@ const Payment = () => {
                     </td>
                   </tr>
                 )}
-                {payments.map((payment: any) => {
-                  const statusKey = payment.status?.toLowerCase();
-                  return (
-                    <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-gray-600">
-                        {new Date(payment.paymentDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3 font-medium text-gray-800">
-                        {payment.customer?.name ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {payment.order?.orderNumber ?? payment.orderId.slice(0, 8)}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-gray-800">
-                        ${payment.amount.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{payment.method}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            STATUS_COLORS[statusKey] ?? "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
+                {payments.map((payment: any) => (
+                  <tr
+                    key={payment.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-mono text-xs text-gray-600">
+                      {payment.orderNumber ?? payment.id.slice(0, 8)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {new Date(payment.orderDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {payment.customer?.name ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {payment.currency} {payment.total?.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          PAYMENT_STATUS_COLORS[payment.paymentStatus] ??
+                          "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {payment.paymentStatus?.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 flex items-center gap-3">
+                      {payment.payments?.some(
+                        (p: any) => p.status === "PENDING",
+                      ) && (
                         <button
-                          onClick={() => setViewPaymentId(payment.id)}
+                          onClick={() => setVerifyPayment(payment)}
+                          className="text-amber-600 hover:text-amber-800 text-sm font-medium hover:underline"
+                        >
+                          Verify
+                        </button>
+                      )}
+                      {payment.paymentStatus !== "PAID" && (
+                        <button
+                          onClick={() => setVerifyPayment(payment)}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline"
                         >
-                          View
+                          + Payment
                         </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -202,12 +231,17 @@ const Payment = () => {
           <RecordPaymentForm onSuccess={() => setShowRecordModal(false)} />
         </Modal>
       )}
-
       {/* View Detail Modal */}
       {viewPaymentId && (
         <Modal title="Payment Detail" onClose={() => setViewPaymentId(null)}>
           <PaymentDetail id={viewPaymentId} />
         </Modal>
+      )}
+      {verifyPayment && (
+        <VerifyPaymentModal
+          order={verifyPayment}
+          onClose={() => setVerifyPayment(null)}
+        />
       )}
     </div>
   );

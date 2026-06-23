@@ -38,3 +38,10 @@ export const getConfirmOrder = (orderId: string, orderType: string) => {
     method: "POST",
   });
 };
+
+export const getOrderByCustomer = (customerId: string) => {
+  return request<{ data: any }>({
+    url: `${endpoints.orders}/active/${customerId}`,
+    method: "GET",
+  });
+};

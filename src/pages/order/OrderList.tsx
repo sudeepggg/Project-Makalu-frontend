@@ -125,9 +125,10 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
             <tr>
               <th>Order #</th>
               <th>Customer</th>
+              <th>Payment Status</th>
+              <th>Status</th>
               <th>Date</th>
               <th>Total</th>
-              <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -143,16 +144,17 @@ const OrderList: React.FC<{ onSelect?: (id: string) => void }> = ({
               <tr key={o.id} className={onSelect ? "cursor-pointer" : ""}>
                 <td className="font-mono text-xs">{o.orderNumber}</td>
                 <td className="font-medium">{o.customer?.name}</td>
+                <td className="font-medium">{o.paymentStatus}</td>
+                <td>
+                  <span className={statusColors[o.status] || "badge-draft"}>
+                    {o.status}
+                  </span>
+                </td>
                 <td className="text-ink-muted">
                   {new Date(o.orderDate).toLocaleDateString()}
                 </td>
                 <td className="font-mono text-sm">
                   NPR {o.total?.toLocaleString()}
-                </td>
-                <td>
-                  <span className={statusColors[o.status] || "badge-draft"}>
-                    {o.status}
-                  </span>
                 </td>
                 <td className="flex items-center gap-2">
                   <button

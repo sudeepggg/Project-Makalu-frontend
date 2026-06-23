@@ -4,8 +4,8 @@ import {
   getCustomerActiveOrdersRequest,
   getPaymentById,
   getPaymentList,
+  verifyPayment,
 } from "../service";
-
 
 export function usePaymentList({
   page,
@@ -26,7 +26,7 @@ export function usePaymentDetails(id: string) {
   return useQuery({
     queryKey: ["payment", id],
     queryFn: () => getPaymentById(id),
-    enabled: !!id, 
+    enabled: !!id,
   });
 }
 
@@ -34,7 +34,7 @@ export function useCustomerActiveOrders(customerId: string) {
   return useQuery({
     queryKey: ["customer-active-orders", customerId],
     queryFn: () => getCustomerActiveOrdersRequest(customerId),
-    enabled: !!customerId, 
+    enabled: !!customerId,
   });
 }
 
@@ -51,3 +51,13 @@ export function useCreatePayment() {
     },
   });
 }
+
+export const useVerifyPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: verifyPayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+    },
+  });
+};

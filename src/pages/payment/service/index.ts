@@ -24,7 +24,7 @@ export const createPaymentRequest = (data: {
   customerId: string;
   orderId: string;
   amount: number;
-  method: string;
+  paymentMethod: string;
   reference?: string;
   paymentDate: string;
   notes?: string;
@@ -36,8 +36,23 @@ export const createPaymentRequest = (data: {
   });
 };
 
+export const verifyPayment = (data: any) => {
+  return request<any>({
+    url: endpoints.payments,
+    method: "POST",
+    data,
+  });
+};
+
 export const getCustomerActiveOrdersRequest = (customerId: string) => {
-  return request<Array<{ id: string; orderNumber: string; total: number; outstanding: number }>>({
+  return request<
+    Array<{
+      id: string;
+      orderNumber: string;
+      total: number;
+      outstanding: number;
+    }>
+  >({
     url: `${endpoints.customers}/${customerId}/active-orders`,
     method: "GET",
   });
