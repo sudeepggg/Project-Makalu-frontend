@@ -4,7 +4,6 @@ import {
   getCustomerActiveOrdersRequest,
   getPaymentById,
   getPaymentList,
-  verifyPayment,
 } from "../service";
 
 export function usePaymentList({
@@ -44,6 +43,7 @@ export function useCreatePayment() {
   return useMutation({
     mutationFn: createPaymentRequest,
     onSuccess: (newPayment) => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
       queryClient.invalidateQueries({
         queryKey: ["customer-active-orders", newPayment.customerId],
       });
@@ -51,13 +51,3 @@ export function useCreatePayment() {
     },
   });
 }
-
-export const useVerifyPayment = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: verifyPayment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-    },
-  });
-};

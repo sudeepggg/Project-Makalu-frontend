@@ -1,4 +1,4 @@
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, AlertTriangle } from "lucide-react";
 import React from "react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useConfirmOrder, useOrdersDetails } from "./hooks";
@@ -22,11 +22,51 @@ const statusColors: Record<string, string> = {
   DELIVERED: "badge-delivered",
 };
 
+// ── Payment Due Warning Modal ─────────────────────────────────────────────────
+const PaymentDueModal: React.FC<{
+  amountDue: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ amountDue, onConfirm, onCancel }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+          <AlertTriangle size={20} className="text-amber-600" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-ink text-base">Payment Due</h3>
+          <p className="text-sm text-ink-muted mt-1">
+            This order has an outstanding balance of{" "}
+            <span className="font-semibold font-mono text-ink">
+              {fmt(amountDue)}
+            </span>
+            . Do you still want to dispatch?
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-2 justify-end pt-1">
+        <button onClick={onCancel} className="btn-secondary text-sm px-4 py-2">
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-all"
+        >
+          Dispatch Anyway
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// ── Main Component ────────────────────────────────────────────────────────────
 const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
   id,
   onBack,
 }) => {
   const [billType, setBillType] = React.useState<BillType | null>(null);
+  const [pendingAction, setPendingAction] = React.useState<string | null>(null); // action waiting for payment-due confirmation
 
   const { mutate: confirmOrder, isPending: confirmPending } =
     useConfirmOrder(id);
@@ -35,6 +75,33 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
   if (isLoading) return <LoadingSpinner />;
   if (!order) return null;
 
+  // ── Derived payment info ───────────────────────────────────────────────────
+  const totalPaid: number =
+    order.payments
+      ?.filter((p: any) => p.status === "COMPLETED")
+      .reduce((sum: number, p: any) => sum + p.amount, 0) ?? 0;
+
+  const amountDue = Math.max(0, order.total - totalPaid);
+  const hasPaymentDue = amountDue > 0;
+
+  // ── Action click handler ───────────────────────────────────────────────────
+  const handleAction = (action: string) => {
+    // Show payment-due warning only when dispatching with outstanding balance
+    if (action === "dispatch" && hasPaymentDue) {
+      setPendingAction("dispatch");
+      return;
+    }
+    confirmOrder(action);
+  };
+
+  const handleDispatchConfirmed = () => {
+    setPendingAction(null);
+    confirmOrder("dispatch");
+  };
+
+  // ── Action button definitions ──────────────────────────────────────────────
+  // Each entry maps an order status to the action button shown.
+  // ALL buttons for the current status are shown; payment just adds a warning.
   const actions: {
     status: string;
     action: string;
@@ -67,12 +134,21 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
 
   const printButtons: { type: BillType; label: string }[] = [
     { type: "PURCHASE_ORDER", label: "Purchase Order" },
-    { type: "TAX_INVOICE",    label: "Tax Invoice"    },
-    { type: "REGULAR_BILL",   label: "Bill"           },
+    { type: "TAX_INVOICE", label: "Tax Invoice" },
+    { type: "REGULAR_BILL", label: "Bill" },
   ];
 
   return (
     <>
+      {/* ── Payment Due Warning Modal ── */}
+      {pendingAction === "dispatch" && (
+        <PaymentDueModal
+          amountDue={amountDue}
+          onConfirm={handleDispatchConfirmed}
+          onCancel={() => setPendingAction(null)}
+        />
+      )}
+
       {/* ── Bill print overlay ── */}
       {billType && (
         <div
@@ -128,13 +204,13 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
               </button>
             ))}
 
-            {/* Status-action buttons */}
+            {/* Status-action buttons — seller decides when to progress */}
             {actions
               .filter((a) => a.status === order.status)
               .map((a) => (
                 <button
                   key={a.action}
-                  onClick={() => confirmOrder(a.action)}
+                  onClick={() => handleAction(a.action)}
                   disabled={confirmPending}
                   className={a.cls}
                 >
@@ -144,7 +220,13 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
                       {a.pendingLabel}
                     </>
                   ) : (
-                    a.label
+                    <>
+                      {/* Show payment-due badge on dispatch button when balance remains */}
+                      {a.action === "dispatch" && hasPaymentDue && (
+                        <AlertTriangle size={14} className="opacity-90" />
+                      )}
+                      {a.label}
+                    </>
                   )}
                 </button>
               ))}
@@ -208,6 +290,7 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
                 <p className="text-ink-muted">{order.customer?.phone || "—"}</p>
               </div>
             </div>
+
             <div className="card p-4 space-y-2">
               <h4 className="font-semibold text-ink">Timeline</h4>
               <div className="text-sm space-y-1">
@@ -235,22 +318,57 @@ const OrderDetail: React.FC<{ id: string; onBack?: () => void }> = ({
                 )}
               </div>
             </div>
-            {order.payments?.length > 0 && (
-              <div className="card p-4 space-y-2">
+
+            {/* ── Payment summary card ── */}
+            <div className="card p-4 space-y-2">
+              <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-ink">Payments</h4>
-                {order.payments.map((p: any) => (
-                  <div
-                    key={p.id}
-                    className="text-sm border border-surface-200 rounded-lg p-3"
-                  >
-                    <p className="font-mono font-semibold">{fmt(p.amount)}</p>
-                    <p className="text-ink-muted">
-                      {p.paymentMethod} · {dt(p.paymentDate)}
-                    </p>
-                  </div>
-                ))}
+                {hasPaymentDue && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    {fmt(amountDue)} due
+                  </span>
+                )}
+                {!hasPaymentDue && totalPaid > 0 && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    Paid
+                  </span>
+                )}
               </div>
-            )}
+
+              {order.payments?.length > 0 ? (
+                <>
+                  {order.payments.map((p: any) => (
+                    <div
+                      key={p.id}
+                      className="text-sm border border-surface-200 rounded-lg p-3"
+                    >
+                      <p className="font-mono font-semibold">{fmt(p.amount)}</p>
+                      <p className="text-ink-muted">
+                        {p.paymentMethod} · {dt(p.paymentDate)}
+                      </p>
+                    </div>
+                  ))}
+
+                  {/* Running total vs order total */}
+                  <div className="pt-1 border-t border-surface-200 text-sm space-y-0.5">
+                    <div className="flex justify-between text-ink-muted">
+                      <span>Total Paid</span>
+                      <span className="font-mono">{fmt(totalPaid)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold">
+                      <span>{hasPaymentDue ? "Balance Due" : "Settled"}</span>
+                      <span
+                        className={`font-mono ${hasPaymentDue ? "text-amber-600" : "text-green-600"}`}
+                      >
+                        {fmt(amountDue)}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-ink-faint">No payments recorded.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -36,23 +36,8 @@ export const createPaymentRequest = (data: {
   });
 };
 
-export const verifyPayment = (data: any) => {
-  return request<any>({
-    url: endpoints.payments,
-    method: "POST",
-    data,
-  });
-};
-
 export const getCustomerActiveOrdersRequest = (customerId: string) => {
-  return request<
-    Array<{
-      id: string;
-      orderNumber: string;
-      total: number;
-      outstanding: number;
-    }>
-  >({
+  return request<any>({
     url: `${endpoints.customers}/${customerId}/active-orders`,
     method: "GET",
   });
